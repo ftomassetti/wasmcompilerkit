@@ -37,12 +37,26 @@ data class FuncType(val paramTypes: List<ValueType>, val returnTypes: List<Value
 
 data class ImportEntry(val module: String, val name: String, val importData: ImportData)
 
+data class Limits(val min: Long, val max: Long? = null)
+
 abstract class ImportData {
     abstract fun type() : ImportType
 }
 
 data class GlobalImportData(val type: ValueType, val mutability: Boolean) : ImportData() {
     override fun type() = ImportType.GLOBAL
+}
+
+data class FunctionImportData(val typeIndex: Long) : ImportData() {
+    override fun type() = ImportType.FUNC
+}
+
+data class MemoryImportData(val limits: Limits) : ImportData() {
+    override fun type() = ImportType.MEM
+}
+
+data class TableImportData(val limits: Limits) : ImportData() {
+    override fun type() = ImportType.TABLE
 }
 
 class WebAssemblyTypeSection : WebAssemblySection() {
@@ -225,7 +239,6 @@ private class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule)
         val section = WebAssemblyImportSection()
         1.rangeTo(nImports).forEach {
             section.addImport(readImportEntry())
-            println("\n----------\n")
         }
         return section
 
@@ -237,6 +250,9 @@ private class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule)
         val importType = ImportType.fromId(readNextByte())
         val importData : ImportData = when (importType) {
             ImportType.GLOBAL -> readGlobalImportData()
+            ImportType.FUNC -> readFunctionImportData()
+            ImportType.MEM -> readMemoryImportData()
+            ImportType.TABLE -> readTableImportData()
             else -> throw UnsupportedOperationException("I do not know how to read $importType")
         }
         return ImportEntry(module, entry, importData)
@@ -244,10 +260,8 @@ private class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule)
 
     private fun readName(): String {
         val length = bytesReader.readU32()
-        println("NAMELEN $length")
         val bytes = 1.rangeTo(length).map { readNextByte() }.toByteArray()
         val name = String(bytes)
-        println("NAME $name")
         return name
     }
 
@@ -265,11 +279,33 @@ private class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule)
         return GlobalImportData(readType(), readBoolean())
     }
 
+    private fun readFunctionImportData() : FunctionImportData {
+        return FunctionImportData(bytesReader.readU32())
+    }
+
+    private fun readMemoryImportData() : MemoryImportData {
+        return MemoryImportData(readLimits())
+    }
+
+    private fun readTableImportData() : TableImportData {
+        expectByte(0x70)
+        return TableImportData(readLimits())
+    }
+
     private fun readBoolean(): Boolean {
         val b = readNextByte()
         when (b) {
             0x00.toByte() -> return false
             0x01.toByte() -> return true
+            else -> throw RuntimeException()
+        }
+    }
+
+    private fun readLimits(): Limits {
+        val b = readNextByte()
+        when (b) {
+            0x00.toByte() -> return Limits(bytesReader.readU32())
+            0x01.toByte() -> return Limits(bytesReader.readU32(), bytesReader.readU32())
             else -> throw RuntimeException()
         }
     }
