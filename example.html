@@ -1,0 +1,24 @@
+<html>
+<body>
+<script>
+    /* An XHR fetching the WASM file as ArrayBuffer */
+    var xhr = new XMLHttpRequest();
+    xhr.responseType = 'arraybuffer';
+    xhr.onload = ready;
+    xhr.open('GET', 'example.wasm');
+    xhr.send(null);
+
+    /* Execute once the file was fetched  */
+    function ready() {
+        var info = {
+            foo: {bar: alert} // "import" the alert method
+        };
+        var a = WebAssembly.instantiate(
+            new Uint8Array(xhr.response), info
+        ).exports;
+        //a.f(); // execute the f method, that is foo.bar()
+    }
+</script>
+<h1>Example</h1>
+</body>
+</html>
