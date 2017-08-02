@@ -6,6 +6,11 @@ import java.util.*
 
 val MAGIC_NUMBER = byteArrayOf(0x00, 0x61, 0x73, 0x6d)
 
+typealias TableIndex = Long
+typealias TypeIndex = Long
+typealias FuncIndex = Long
+typealias MemIndex = Long
+
 enum class WebAssemblyVersion(val byteArray: ByteArray) {
     WASM1(byteArrayOf(0x01, 0x00, 0x00, 0x00))
 }
@@ -110,10 +115,6 @@ data class GlobalType(val valueType: ValueType, val mutability: Boolean)
 
 data class GlobalDefinition(val globalType: GlobalType, val expr: Instruction)
 
-abstract class Expression
-
-typealias TypeIndex = Long
-
 class WebAssemblyFunctionSection : WebAssemblySection() {
     private val typeIndexes = LinkedList<TypeIndex>()
 
@@ -129,6 +130,16 @@ class WebAssemblyExportSection : WebAssemblySection() {
         entries.add(entry)
     }
 }
+
+class WebAssemblyDataSection : WebAssemblySection() {
+    private val segments = LinkedList<DataSegment>()
+
+    fun addSegment(segment: DataSegment) {
+        segments.add(segment)
+    }
+}
+
+data class DataSegment(val x: MemIndex, val e: Instruction, val data: ByteArray)
 
 class WebAssemblyModule(var version: WebAssemblyVersion = WebAssemblyVersion.WASM1) {
 
@@ -153,6 +164,28 @@ class WebAssemblyModule(var version: WebAssemblyVersion = WebAssemblyVersion.WAS
         sections.add(section)
     }
 
+}
+
+data class ElementSegment(val tableIndex: TableIndex, val expr: Instruction, val init: List<FuncIndex>)
+
+class CodeBlock(val bytes: ByteArray)
+
+data class CodeEntry(val locals: List<Pair<Long, ValueType>>, val code: CodeBlock)
+
+class WebAssemblyCodeSection : WebAssemblySection() {
+    private val entries = LinkedList<CodeEntry>()
+
+    fun addEntry(entry: CodeEntry) {
+        entries.add(entry)
+    }
+}
+
+class WebAssemblyElementSection : WebAssemblySection() {
+    private val segments = LinkedList<ElementSegment>()
+
+    fun addSegment(segment: ElementSegment) {
+        segments.add(segment)
+    }
 }
 
 fun load(inputStream: InputStream) : WebAssemblyModule {

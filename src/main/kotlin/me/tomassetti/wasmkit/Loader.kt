@@ -1,5 +1,6 @@
 package me.tomassetti.wasmkit
 
+import javax.xml.crypto.Data
 import kotlin.experimental.and
 
 class BytesReader(val bytes: ByteArray) {
@@ -17,6 +18,8 @@ class BytesReader(val bytes: ByteArray) {
         val byte = readNextByte()
         return byte.and(0x7F).toLong() + if (byte.and(0x80.toByte()) != 0.toByte()) 128 * readU32() else 0
     }
+
+    fun readBytes(n: Long) : ByteArray = 1L.rangeTo(n).map { readNextByte() }.toByteArray()
 
     fun currentIndex() = currentIndex
     fun readS32(): Long {
@@ -86,9 +89,49 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
             SectionType.EXPORT -> readExportSection()
             SectionType.FUNCTION -> readFunctionSection()
             SectionType.GLOBAL -> readGlobalSection()
+            SectionType.ELEMENT -> readElementSection()
+            SectionType.CODE -> readCodeSection()
+            SectionType.DATA -> readDataSection()
             else -> throw RuntimeException("FOUND $sectionType")
         }
         module.addSection(section)
+    }
+
+    private fun readDataSection() : WebAssemblySection {
+        val payloadLen = bytesReader.readU32()
+        val nElements = bytesReader.readU32()
+        println("  nElements=$nElements")
+        val section = WebAssemblyDataSection()
+        1.rangeTo(nElements).forEach {
+            val x = bytesReader.readU32()
+            val e = readExpression()
+            val nBytes = bytesReader.readU32()
+            val b = bytesReader.readBytes(nBytes)
+            section.addSegment(DataSegment(x, e, b))
+        }
+        return section
+    }
+
+    private fun readCodeSection() : WebAssemblySection {
+        val payloadLen = bytesReader.readU32()
+        println("CODE SECTION PAYLOAD $payloadLen")
+        val nElements = bytesReader.readU32()
+        println("  nElements=$nElements")
+        val section = WebAssemblyCodeSection()
+        1.rangeTo(nElements).forEach {
+            val codeSize = bytesReader.readU32()
+            println(" * codeSize $codeSize")
+            val startPos = bytesReader.currentIndex()
+            val nLocals = bytesReader.readU32()
+            println("   nLocals $nLocals")
+            val locals = 1.rangeTo(nLocals).map { Pair(bytesReader.readU32(), readType()) }
+            println("   locals $locals")
+            val currentPos = bytesReader.currentIndex()
+            val bytesToRead = codeSize - (currentPos - startPos)
+            val codeBytes = bytesReader.readBytes(bytesToRead)
+            section.addEntry(CodeEntry(locals, CodeBlock(codeBytes)))
+        }
+        return section
     }
 
     private fun readTypeSection() : WebAssemblySection {
@@ -144,6 +187,25 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
             section.addGlobalDefinition(readGlobalDefinition())
         }
         return section
+    }
+
+    private fun readElementSection() : WebAssemblySection {
+        val payloadLen = bytesReader.readU32()
+        val nElements = bytesReader.readU32()
+        println("N ELEMENTS $nElements")
+        val section = WebAssemblyElementSection()
+        1.rangeTo(nElements).forEach {
+            section.addSegment(readElementSegment())
+        }
+        return section
+    }
+
+    private fun readElementSegment(): ElementSegment {
+        val x = bytesReader.readU32()
+        val e = readExpression()
+        val nInit = bytesReader.readU32()
+        val init = 1.rangeTo(nInit).map { bytesReader.readU32() }
+        return ElementSegment(x, e, init)
     }
 
     private fun readGlobalDefinition(): GlobalDefinition {
