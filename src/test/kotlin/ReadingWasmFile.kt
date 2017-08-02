@@ -24,6 +24,27 @@ class ReadingWasmFile {
     }
 
     @test
+    fun readingDynamicWasmFile() {
+        // obtained from https://d2jta7o2zej4pf.cloudfront.net/
+        val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/dynamics.wasm")
+        loadWorks(inputStream)
+    }
+
+    @test
+    fun readingDynamicCollWasmFile() {
+        // obtained from https://d2jta7o2zej4pf.cloudfront.net/
+        val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/dynamics-coll.wasm")
+        loadWorks(inputStream)
+    }
+
+    @test
+    fun readingDynamicOptWasmFile() {
+        // obtained from https://d2jta7o2zej4pf.cloudfront.net/
+        val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/dynamics-opt.wasm")
+        loadWorks(inputStream)
+    }
+
+    @test
     fun loadingWebDspCWasmFile() {
         // obtained from https://d2jta7o2zej4pf.cloudfront.net/
         val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/webdsp_c.wasm")

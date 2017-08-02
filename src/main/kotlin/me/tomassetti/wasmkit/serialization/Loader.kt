@@ -36,9 +36,37 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
             SectionType.ELEMENT -> readElementSection()
             SectionType.CODE -> readCodeSection()
             SectionType.DATA -> readDataSection()
-            else -> throw RuntimeException("FOUND $sectionType")
+            SectionType.TABLE -> readTableSection()
+            SectionType.MEMORY -> readMemorySection()
+            SectionType.CUSTOM -> TODO()
+            SectionType.START -> TODO()
         }
         module.addSection(section)
+    }
+
+    private fun readMemorySection() : WebAssemblySection {
+        val payloadLen = bytesReader.readU32()
+        val nElements = bytesReader.readU32()
+        val section = WebAssemblyMemorySection()
+        1.rangeTo(nElements).forEach {
+            section.addMemory(MemoryDefinition(readLimits()))
+        }
+        return section
+    }
+
+    private fun readTableSection() : WebAssemblySection {
+        val payloadLen = bytesReader.readU32()
+        val nElements = bytesReader.readU32()
+        val section = WebAssemblyTableSection()
+        1.rangeTo(nElements).forEach {
+            section.addTable(readTableDefinition())
+        }
+        return section
+    }
+
+    private fun readTableDefinition(): TableDefinition {
+        expectByte(0x70)
+        return TableDefinition(readLimits())
     }
 
     private fun readDataSection() : WebAssemblySection {
