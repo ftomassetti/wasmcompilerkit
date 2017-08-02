@@ -1,6 +1,8 @@
 import java.io.InputStream
 import org.junit.Test as test
 import org.junit.Assert.*
+import kotlin.experimental.and
+import kotlin.experimental.or
 
 class BytesReaderTest {
 
@@ -11,7 +13,7 @@ class BytesReaderTest {
     }
 
     @test
-    fun decodeMunys624485() {
+    fun decodeMi2us624485() {
         val bytes = byteArrayOf(0x9B.toByte(), 0xF1.toByte(), 0x59)
         assertEquals(-624485L, BytesReader(bytes).readS32())
     }
