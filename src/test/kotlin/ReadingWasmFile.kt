@@ -16,6 +16,7 @@ class ReadingWasmFile {
 
     @test
     fun readingWebDspCWasmFile() {
+        System.out.println(0xdf.toByte())
         // obtained from https://d2jta7o2zej4pf.cloudfront.net/
         val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/webdsp_c.wasm")
         loadWorks(inputStream)

@@ -1,13 +1,31 @@
 import java.io.File
 import java.io.InputStream
+import java.util.*
+import kotlin.experimental.and
 
 val MAGIC_NUMBER = byteArrayOf(0x00, 0x61, 0x73, 0x6d)
 
-enum class WebAssemblyVersion(val number: Int) {
-    WASM1(1)
+enum class WebAssemblyVersion(val byteArray: ByteArray) {
+    WASM1(byteArrayOf(0x01, 0x00, 0x00, 0x00))
 }
 
-class WebAssemblyModule(val version: WebAssemblyVersion = WebAssemblyVersion.WASM1) {
+open class WebAssemblySection
+
+class Type
+
+data class FuncType(val paramTypes: List<Type>, val returnTypes: List<Type>)
+
+class WebAssemblyTypeSection : WebAssemblySection() {
+    private val funcTypes = LinkedList<FuncType>()
+
+    fun addFuncType(funcType: FuncType) {
+        funcTypes.add(funcType)
+    }
+}
+
+class WebAssemblyModule(var version: WebAssemblyVersion = WebAssemblyVersion.WASM1) {
+
+    private val sections = LinkedList<WebAssemblySection>()
 
     fun generateBytes() : ByteArray {
         val bytes = ByteArray(8)
@@ -21,10 +39,11 @@ class WebAssemblyModule(val version: WebAssemblyVersion = WebAssemblyVersion.WAS
     }
 
     private fun writeVersion(byteArray: ByteArray, index: Int) {
-        byteArray[index + 0] = version.number.toByte()
-        byteArray[index + 1] = 0x00
-        byteArray[index + 2] = 0x00
-        byteArray[index + 3] = 0x00
+        version.byteArray.forEachIndexed { i, byte ->  byteArray[index + i] = byte }
+    }
+
+    fun addSection(section: WebAssemblySection) {
+        sections.add(section)
     }
 
 }
@@ -37,27 +56,100 @@ fun load(bytes: ByteArray) : WebAssemblyModule {
     val module = WebAssemblyModule()
     val loader = WebAssemblyLoader(bytes, module)
     loader.readMagicNumber()
-    if (!loader.hasFinished()) {
-        throw RuntimeException("unread content")
+    module.version = loader.readVersion()
+    while (!loader.hasFinished()) {
+        loader.readSection()
+        //throw RuntimeException("unread content: remaining bytes ${loader.remainingBytes()}")
     }
     return module
 }
 
-private class WebAssemblyLoader(val bytes: ByteArray, val module: WebAssemblyModule) {
+enum class SectionType(val id: Byte) {
+    CUSTOM(0),
+    TYPE(1),
+    IMPORT(2),
+    FUNCTION(3),
+    TABLE(4),
+    MEMORY(5),
+    GLOBAL(6),
+    EXPORT(7),
+    START(8),
+    ELEMENT(9),
+    CODE(10),
+    DATA(11);
+
+    companion object {
+        fun fromId(id: Byte) = SectionType.values().first { it.id == id }
+    }
+}
+
+class BytesReader(val bytes: ByteArray) {
     private var currentIndex = 0
+
+    fun readNextByte() = bytes[currentIndex++]
+
+    fun hasFinished() = remainingBytes() == 0
+
+    fun remainingBytes() = bytes.size - currentIndex
+
+    fun readU32() : Long {
+        val byte = readNextByte()
+        return byte.and(0x7F).toLong() + if (byte.and(0x80.toByte()) != 0.toByte()) 128 * readU32() else 0
+    }
+
+    fun currentIndex() = currentIndex
+    fun  readS32(): Long {
+        val byte = readNextByte()
+        return byte.and(0x7F).toLong() + if (byte.and(0x80.toByte()) != 0.toByte()) 128 * readU32() else 0
+    }
+}
+
+private class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
+    private val bytesReader = BytesReader(bytes)
 
     fun readMagicNumber() {
         MAGIC_NUMBER.forEach { expectByte(it) }
     }
 
-    fun expectByte(expectedByte: Byte) {
-        if (bytes[currentIndex] != expectedByte) {
-            throw RuntimeException("Invalid byte found")
-        }
-        currentIndex++
+    fun readVersion() : WebAssemblyVersion {
+        WebAssemblyVersion.WASM1.byteArray.forEach { expectByte(it) }
+        return WebAssemblyVersion.WASM1
     }
 
-    fun hasFinished() = bytes.size == currentIndex
+    fun expectByte(expectedByte: Byte) {
+        val readByte = readNextByte()
+        if (readByte != expectedByte) {
+            throw RuntimeException("Invalid byte found. Expected $expectedByte found $readByte")
+        }
+    }
+
+    fun readNextByte() = bytesReader.readNextByte()
+
+    fun hasFinished() = bytesReader.hasFinished()
+
+    fun readSection() {
+        val sectionType = SectionType.fromId(readNextByte())
+        val section = when (sectionType) {
+            SectionType.TYPE -> readTypeSection()
+            else -> throw RuntimeException("FOUND ${sectionType}")
+        }
+        module.addSection(section)
+    }
+
+    private fun readTypeSection() : WebAssemblySection {
+        val length = bytesReader.readU32()
+        val typeSection = WebAssemblyTypeSection()
+        1.rangeTo(length).forEach {
+            println("READING FUNC TYPE $it ${bytesReader.currentIndex()}")
+            typeSection.addFuncType(readFuncType())
+        }
+        return typeSection
+    }
+
+    private fun readFuncType(): FuncType {
+        expectByte(0x60)
+        throw UnsupportedOperationException()
+    }
 }
 
 fun main(args: Array<String>) {
