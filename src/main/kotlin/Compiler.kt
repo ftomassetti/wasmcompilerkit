@@ -47,7 +47,7 @@ data class GlobalImportData(val type: ValueType, val mutability: Boolean) : Impo
     override fun type() = ImportType.GLOBAL
 }
 
-data class FunctionImportData(val typeIndex: Long) : ImportData() {
+data class FunctionImportData(val typeIndex: TypeIndex) : ImportData() {
     override fun type() = ImportType.FUNC
 }
 
@@ -63,7 +63,6 @@ class WebAssemblyTypeSection : WebAssemblySection() {
     private val funcTypes = LinkedList<FuncType>()
 
     fun addFuncType(funcType: FuncType) {
-        println(funcType)
         funcTypes.add(funcType)
     }
 }
@@ -72,8 +71,17 @@ class WebAssemblyImportSection : WebAssemblySection() {
     private val imports = LinkedList<ImportEntry>()
 
     fun addImport(import: ImportEntry) {
-        println(import)
         imports.add(import)
+    }
+}
+
+typealias TypeIndex = Long
+
+class WebAssemblyFunctionSection : WebAssemblySection() {
+    private val typeIndexes = LinkedList<TypeIndex>()
+
+    fun addTypeIndex(typeIndex: TypeIndex) {
+        typeIndexes.add(typeIndex)
     }
 }
 
@@ -216,7 +224,8 @@ private class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule)
         val section = when (sectionType) {
             SectionType.TYPE -> readTypeSection()
             SectionType.IMPORT -> readImportSection()
-            else -> throw RuntimeException("FOUND ${sectionType}")
+            SectionType.FUNCTION -> readFunctionSection()
+            else -> throw RuntimeException("FOUND $sectionType")
         }
         module.addSection(section)
     }
@@ -241,7 +250,17 @@ private class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule)
             section.addImport(readImportEntry())
         }
         return section
+    }
 
+    private fun readFunctionSection() : WebAssemblySection {
+        val payloadLen = bytesReader.readU32()
+        val nFunctions = bytesReader.readU32()
+        println("N FUNCTIONS $nFunctions")
+        val section = WebAssemblyFunctionSection()
+        1.rangeTo(nFunctions).forEach {
+            section.addTypeIndex(bytesReader.readU32())
+        }
+        return section
     }
 
     private fun readImportEntry(): ImportEntry {
