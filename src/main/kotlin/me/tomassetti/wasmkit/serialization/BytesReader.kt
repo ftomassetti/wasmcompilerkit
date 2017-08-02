@@ -46,13 +46,4 @@ class BytesReader(val bytes: ByteArray) {
         return result
     }
 
-    private fun readBytesSequence() : ByteArray {
-        val byte = readNextByte()
-        if (byte.and(0x80.toByte()) != 0.toByte()) {
-            return byteArrayOf(byte) + readBytesSequence()
-        } else {
-            return byteArrayOf(byte)
-        }
-    }
-
 }

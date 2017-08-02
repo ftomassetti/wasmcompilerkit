@@ -44,7 +44,6 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
     private fun readDataSection() : WebAssemblySection {
         val payloadLen = bytesReader.readU32()
         val nElements = bytesReader.readU32()
-        println("  nElements=$nElements")
         val section = WebAssemblyDataSection()
         1.rangeTo(nElements).forEach {
             val x = bytesReader.readU32()
@@ -58,18 +57,13 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
 
     private fun readCodeSection() : WebAssemblySection {
         val payloadLen = bytesReader.readU32()
-        println("CODE SECTION PAYLOAD $payloadLen")
         val nElements = bytesReader.readU32()
-        println("  nElements=$nElements")
         val section = WebAssemblyCodeSection()
         1.rangeTo(nElements).forEach {
             val codeSize = bytesReader.readU32()
-            println(" * codeSize $codeSize")
             val startPos = bytesReader.currentIndex()
             val nLocals = bytesReader.readU32()
-            println("   nLocals $nLocals")
             val locals = 1.rangeTo(nLocals).map { Pair(bytesReader.readU32(), readType()) }
-            println("   locals $locals")
             val currentPos = bytesReader.currentIndex()
             val bytesToRead = codeSize - (currentPos - startPos)
             val codeBytes = bytesReader.readBytes(bytesToRead)
@@ -81,7 +75,6 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
     private fun readTypeSection() : WebAssemblySection {
         val payloadLen = bytesReader.readU32()
         val nFunctions = bytesReader.readU32()
-        println("TYPE SECTION: payloadLen=$payloadLen nFunctions=$nFunctions")
         val section = WebAssemblyTypeSection()
         1.rangeTo(nFunctions).forEach {
             section.addFuncType(readFuncType())
@@ -92,7 +85,6 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
     private fun readImportSection() : WebAssemblySection {
         val payloadLen = bytesReader.readU32()
         val nImports = bytesReader.readU32()
-        println("N IMPORTS ${nImports}")
         val section = WebAssemblyImportSection()
         1.rangeTo(nImports).forEach {
             section.addImport(readImportEntry())
@@ -103,7 +95,6 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
     private fun readExportSection() : WebAssemblySection {
         val payloadLen = bytesReader.readU32()
         val nElements = bytesReader.readU32()
-        println("N EXPORTS ${nElements}")
         val section = WebAssemblyExportSection()
         1.rangeTo(nElements).forEach {
             section.addEntry(readExportEntry())
@@ -114,7 +105,6 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
     private fun readFunctionSection() : WebAssemblySection {
         val payloadLen = bytesReader.readU32()
         val nFunctions = bytesReader.readU32()
-        println("N FUNCTIONS $nFunctions")
         val section = WebAssemblyFunctionSection()
         1.rangeTo(nFunctions).forEach {
             section.addTypeIndex(bytesReader.readU32())
@@ -125,7 +115,6 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
     private fun readGlobalSection() : WebAssemblySection {
         val payloadLen = bytesReader.readU32()
         val nGlobals = bytesReader.readU32()
-        println("N GLOBALS $nGlobals")
         val section = WebAssemblyGlobalSection()
         1.rangeTo(nGlobals).forEach {
             section.addGlobalDefinition(readGlobalDefinition())
@@ -136,7 +125,6 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
     private fun readElementSection() : WebAssemblySection {
         val payloadLen = bytesReader.readU32()
         val nElements = bytesReader.readU32()
-        println("N ELEMENTS $nElements")
         val section = WebAssemblyElementSection()
         1.rangeTo(nElements).forEach {
             section.addSegment(readElementSegment())
@@ -159,7 +147,6 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
     private fun readGlobalType() = GlobalType(readType(), readBoolean())
 
     private fun readExpression(): Instruction {
-        println("EXP ${bytesReader.peekNextByte()}")
         val instructionType = InstructionType.fromOpcode(bytesReader.readNextByte())
         val instruction = when (instructionType.family) {
             InstructionFamily.VAR -> VarInstruction(instructionType, bytesReader.readU32())
@@ -201,7 +188,6 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
 
     private fun readExportEntry(): ExportEntry {
         val entry = readName()
-        println("NAME $entry")
         val exportData = readExportData()
         return ExportEntry(entry, exportData)
     }
