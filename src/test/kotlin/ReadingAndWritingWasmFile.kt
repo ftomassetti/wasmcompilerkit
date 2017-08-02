@@ -4,39 +4,38 @@ import java.io.InputStream
 import org.junit.Test as test
 import org.junit.Assert.*
 
-class ReadingWasmFile {
+class ReadingAndWritingWasmFile {
 
-    private fun loadWorks(inputStream: InputStream) {
+    private fun loadAndStoreWorks(inputStream: InputStream) {
         val bytes = inputStream.readBytes()
-        load(bytes)
+        assertEquals(bytes, load(bytes).generateBytes())
     }
 
     @test
-    fun readingWebDspCWasmFile() {
+    fun loadingWebDspCWasmFile() {
         // obtained from https://d2jta7o2zej4pf.cloudfront.net/
         val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/webdsp_c.wasm")
-        loadWorks(inputStream)
+        loadAndStoreWorks(inputStream)
     }
 
     @test
-    fun readingDynamicWasmFile() {
-        // obtained from https://d2jta7o2zej4pf.cloudfront.net/
+    fun loadingDynamicWasmFile() {
+        // obtained from https://github.com/guybedford/wasm-demo
         val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/dynamics.wasm")
-        loadWorks(inputStream)
+        loadAndStoreWorks(inputStream)
     }
 
     @test
-    fun readingDynamicCollWasmFile() {
-        // obtained from https://d2jta7o2zej4pf.cloudfront.net/
+    fun loadingDynamicCollWasmFile() {
+        // obtained from https://github.com/guybedford/wasm-demo
         val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/dynamics-coll.wasm")
-        loadWorks(inputStream)
+        loadAndStoreWorks(inputStream)
     }
 
     @test
-    fun readingDynamicOptWasmFile() {
-        // obtained from https://d2jta7o2zej4pf.cloudfront.net/
+    fun loadingDynamicOptFile() {
+        // obtained from https://github.com/guybedford/wasm-demo
         val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/dynamics-opt.wasm")
-        loadWorks(inputStream)
+        loadAndStoreWorks(inputStream)
     }
-
 }
