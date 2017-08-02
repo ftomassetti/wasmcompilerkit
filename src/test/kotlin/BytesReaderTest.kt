@@ -1,5 +1,6 @@
 package me.tomassetti.wasmkit
 
+import me.tomassetti.wasmkit.serialization.BytesReader
 import java.io.InputStream
 import org.junit.Test as test
 import org.junit.Assert.*
