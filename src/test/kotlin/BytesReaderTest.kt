@@ -1,3 +1,5 @@
+package me.tomassetti.wasmkit
+
 import java.io.InputStream
 import org.junit.Test as test
 import org.junit.Assert.*
