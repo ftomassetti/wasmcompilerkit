@@ -1,6 +1,12 @@
 package me.tomassetti.wasmkit
 
-enum class InstructionType(val opcode: Byte) {
+enum class InstructionFamily {
+    UNSPECIFIED,
+    VAR,
+    NUMERIC_CONST
+}
+
+enum class InstructionType(val opcode: Byte, val family: InstructionFamily = InstructionFamily.UNSPECIFIED) {
     UNREACHABLE(0x00),
     NOP(0x01),
     BLOCK(0x02),
@@ -14,11 +20,13 @@ enum class InstructionType(val opcode: Byte) {
     INDCALL(0x11),
     DROP(0x1A),
     SELECT(0x1B),
-    GET_LOCAL(0x20),
-    SET_LOCAL(0x21),
-    TEE_LOCAL(0x22),
-    GET_GLOBAL(0x23),
-    SET_GLOBAL(0x24),
+
+    GET_LOCAL(0x20, InstructionFamily.VAR),
+    SET_LOCAL(0x21, InstructionFamily.VAR),
+    TEE_LOCAL(0x22, InstructionFamily.VAR),
+    GET_GLOBAL(0x23, InstructionFamily.VAR),
+    SET_GLOBAL(0x24, InstructionFamily.VAR),
+
     LOADI32(0x28),
     LOADI64(0x29),
     LOADF32(0x2A),
@@ -44,10 +52,10 @@ enum class InstructionType(val opcode: Byte) {
     STOREI64_32(0x3E),
     CURRMEM(0x3F),
     GROWMEM(0x40),
-    I32CONST(0x41),
-    I64CONST(0x42),
-    F32CONST(0x43),
-    F64CONST(0x44),
+    I32CONST(0x41, InstructionFamily.NUMERIC_CONST),
+    I64CONST(0x42, InstructionFamily.NUMERIC_CONST),
+    F32CONST(0x43, InstructionFamily.NUMERIC_CONST),
+    F64CONST(0x44, InstructionFamily.NUMERIC_CONST),
     I32EQZ(0x45),
     I32EQ(0x46),
     I32NE(0x47),
@@ -180,5 +188,14 @@ enum class InstructionType(val opcode: Byte) {
     I32REINTERPRETF32(0xBC.toByte()),
     I64REINTERPRETF64(0xBD.toByte()),
     F32REINTERPRETI32(0xBE.toByte()),
-    F64REINTERPRETI64(0xBF.toByte())
+    F64REINTERPRETI64(0xBF.toByte());
+
+    companion object {
+        fun fromOpcode(opCode: Byte) = values().first { it.opcode == opCode }
+    }
 }
+
+abstract class Instruction(val type: InstructionType)
+
+class VarInstruction(type: InstructionType, val index: Long) : Instruction(type)
+class I32ConstInstruction(type: InstructionType, val value: Long) : Instruction(type)

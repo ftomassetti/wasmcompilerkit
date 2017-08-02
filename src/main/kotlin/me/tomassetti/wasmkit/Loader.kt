@@ -7,6 +7,8 @@ class BytesReader(val bytes: ByteArray) {
 
     fun readNextByte() = bytes[currentIndex++]
 
+    fun peekNextByte() = bytes[currentIndex]
+
     fun hasFinished() = remainingBytes() == 0
 
     fun remainingBytes() = bytes.size - currentIndex
@@ -81,6 +83,7 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
         val section = when (sectionType) {
             SectionType.TYPE -> readTypeSection()
             SectionType.IMPORT -> readImportSection()
+            SectionType.EXPORT -> readExportSection()
             SectionType.FUNCTION -> readFunctionSection()
             SectionType.GLOBAL -> readGlobalSection()
             else -> throw RuntimeException("FOUND $sectionType")
@@ -106,6 +109,17 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
         val section = WebAssemblyImportSection()
         1.rangeTo(nImports).forEach {
             section.addImport(readImportEntry())
+        }
+        return section
+    }
+
+    private fun readExportSection() : WebAssemblySection {
+        val payloadLen = bytesReader.readU32()
+        val nElements = bytesReader.readU32()
+        println("N EXPORTS ${nElements}")
+        val section = WebAssemblyExportSection()
+        1.rangeTo(nElements).forEach {
+            section.addEntry(readExportEntry())
         }
         return section
     }
@@ -138,15 +152,24 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
 
     private fun readGlobalType() = GlobalType(readType(), readBoolean())
 
-    private fun readExpression(): Expression {
-
+    private fun readExpression(): Instruction {
+        println("EXP ${bytesReader.peekNextByte()}")
+        val instructionType = InstructionType.fromOpcode(bytesReader.readNextByte())
+        val instruction = when (instructionType.family) {
+            InstructionFamily.VAR -> VarInstruction(instructionType, bytesReader.readU32())
+            InstructionFamily.NUMERIC_CONST -> {
+                when (instructionType) {
+                    InstructionType.I32CONST -> I32ConstInstruction(instructionType, bytesReader.readU32())
+                    else -> throw UnsupportedOperationException("Instruction $instructionType")
+                }
+            }
+            else -> throw UnsupportedOperationException("Instruction $instructionType")
+        }
         expectByte(0x0B)
-        throw UnsupportedOperationException()
+        return instruction
     }
 
-    private fun readImportEntry(): ImportEntry {
-        val module = readName()
-        val entry = readName()
+    private fun readImportData() : ImportData {
         val importType = ImportType.fromId(readNextByte())
         val importData : ImportData = when (importType) {
             ImportType.GLOBAL -> readGlobalImportData()
@@ -155,6 +178,32 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
             ImportType.TABLE -> readTableImportData()
             else -> throw UnsupportedOperationException("I do not know how to read $importType")
         }
+        return importData
+    }
+
+    private fun readExportData() : ExportData {
+        val importType = ImportType.fromId(readNextByte())
+        val data : ExportData = when (importType) {
+            ImportType.GLOBAL -> GlobalExportData(bytesReader.readU32())
+            ImportType.FUNC -> TableExportData(bytesReader.readU32())
+            ImportType.MEM -> MemoryExportData(bytesReader.readU32())
+            ImportType.TABLE -> TableExportData(bytesReader.readU32())
+            else -> throw UnsupportedOperationException("I do not know how to read $importType")
+        }
+        return data
+    }
+
+    private fun readExportEntry(): ExportEntry {
+        val entry = readName()
+        println("NAME $entry")
+        val exportData = readExportData()
+        return ExportEntry(entry, exportData)
+    }
+
+    private fun readImportEntry(): ImportEntry {
+        val module = readName()
+        val entry = readName()
+        val importData = readImportData()
         return ImportEntry(module, entry, importData)
     }
 

@@ -3,7 +3,6 @@ package me.tomassetti.wasmkit
 import java.io.File
 import java.io.InputStream
 import java.util.*
-import kotlin.experimental.and
 
 val MAGIC_NUMBER = byteArrayOf(0x00, 0x61, 0x73, 0x6d)
 
@@ -39,6 +38,8 @@ data class FuncType(val paramTypes: List<ValueType>, val returnTypes: List<Value
 
 data class ImportEntry(val module: String, val name: String, val importData: ImportData)
 
+data class ExportEntry(val name: String, val exportData: ExportData)
+
 data class Limits(val min: Long, val max: Long? = null)
 
 abstract class ImportData {
@@ -58,6 +59,26 @@ data class MemoryImportData(val limits: Limits) : ImportData() {
 }
 
 data class TableImportData(val limits: Limits) : ImportData() {
+    override fun type() = ImportType.TABLE
+}
+
+abstract class ExportData {
+    abstract fun type() : ImportType
+}
+
+data class GlobalExportData(val index: Long) : ExportData() {
+    override fun type() = ImportType.GLOBAL
+}
+
+data class FunctionExportData(val index: Long) : ExportData() {
+    override fun type() = ImportType.FUNC
+}
+
+data class MemoryExportData(val index: Long) : ExportData() {
+    override fun type() = ImportType.MEM
+}
+
+data class TableExportData(val index: Long) : ExportData() {
     override fun type() = ImportType.TABLE
 }
 
@@ -87,7 +108,7 @@ class WebAssemblyGlobalSection : WebAssemblySection() {
 
 data class GlobalType(val valueType: ValueType, val mutability: Boolean)
 
-data class GlobalDefinition(val globalType: GlobalType, val expr: Expression)
+data class GlobalDefinition(val globalType: GlobalType, val expr: Instruction)
 
 abstract class Expression
 
@@ -98,6 +119,14 @@ class WebAssemblyFunctionSection : WebAssemblySection() {
 
     fun addTypeIndex(typeIndex: TypeIndex) {
         typeIndexes.add(typeIndex)
+    }
+}
+
+class WebAssemblyExportSection : WebAssemblySection() {
+    private val entries = LinkedList<ExportEntry>()
+
+    fun addEntry(entry: ExportEntry) {
+        entries.add(entry)
     }
 }
 
