@@ -49,7 +49,7 @@ abstract class WebAssemblyVectorSection<E:Any>(type : SectionType) : WebAssembly
     private fun elementSize(element: Any): Long {
         return when (element) {
             is Sized -> element.sizeInBytes()
-            is Long -> 5
+            is Long -> sizeInBytesOfU32(element)
             else -> TODO(element.javaClass.canonicalName)
         }
     }

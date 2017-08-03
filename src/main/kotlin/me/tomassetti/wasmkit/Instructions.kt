@@ -1,5 +1,7 @@
 package me.tomassetti.wasmkit
 
+import me.tomassetti.wasmkit.serialization.sizeInBytesOfU32
+
 enum class InstructionFamily {
     UNSPECIFIED,
     VAR,
@@ -195,7 +197,19 @@ enum class InstructionType(val opcode: Byte, val family: InstructionFamily = Ins
     }
 }
 
-abstract class Instruction(val type: InstructionType)
+abstract class Instruction(val type: InstructionType) {
+    open fun sizeInBytes(): Long = TODO("Instruction of type $type")
+}
 
-class VarInstruction(type: InstructionType, val index: Long) : Instruction(type)
-class I32ConstInstruction(type: InstructionType, val value: Long) : Instruction(type)
+class VarInstruction(type: InstructionType, val index: Long) : Instruction(type) {
+    override fun sizeInBytes(): Long = 1 + sizeInBytesOfU32(index)
+
+}
+class I32ConstInstruction(type: InstructionType, val value: Long) : Instruction(type) {
+    override fun sizeInBytes(): Long {
+        return when (type) {
+            InstructionType.I32CONST -> 1 + sizeInBytesOfU32(value)
+            else -> TODO("Instruction of type $type")
+        }
+    }
+}

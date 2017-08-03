@@ -113,13 +113,13 @@ data class MemoryDefinition(val limits: Limits) : Sized {
 
 data class GlobalType(val valueType: ValueType, val mutability: Boolean) : Sized {
     override fun sizeInBytes(): Long {
-        TODO()
+        return 2
     }
 }
 
 data class GlobalDefinition(val globalType: GlobalType, val expr: Instruction) : Sized {
     override fun sizeInBytes(): Long {
-        TODO()
+        return globalType.sizeInBytes() + expr.sizeInBytes() + 1
     }
 }
 
