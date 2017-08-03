@@ -36,10 +36,48 @@ class WebAssemblyModule(var version: WebAssemblyVersion = WebAssemblyVersion.WAS
             .filter { it.type == SectionType.FUNCTION }
             .map { it as WebAssemblyFunctionSection }.firstOrNull()
 
+    fun typeSection() : WebAssemblyTypeSection? = _sections
+            .filter { it.type == SectionType.TYPE }
+            .map { it as WebAssemblyTypeSection }.firstOrNull()
+
+    fun dataSection() : WebAssemblyDataSection? = _sections
+            .filter { it.type == SectionType.DATA }
+            .map { it as WebAssemblyDataSection }.firstOrNull()
+
+    fun elementSection() : WebAssemblyElementSection? = _sections
+            .filter { it.type == SectionType.ELEMENT }
+            .map { it as WebAssemblyElementSection }.firstOrNull()
+
+    fun exportSection() : WebAssemblyExportSection? = _sections
+            .filter { it.type == SectionType.EXPORT }
+            .map { it as WebAssemblyExportSection }.firstOrNull()
+
+    fun importSection() : WebAssemblyImportSection? = _sections
+            .filter { it.type == SectionType.IMPORT }
+            .map { it as WebAssemblyImportSection }.firstOrNull()
+
+    fun tableSection() : WebAssemblyTableSection? = _sections
+            .filter { it.type == SectionType.TABLE }
+            .map { it as WebAssemblyTableSection }.firstOrNull()
+
+    fun globalSection() : WebAssemblyGlobalSection? = _sections
+            .filter { it.type == SectionType.GLOBAL }
+            .map { it as WebAssemblyGlobalSection }.firstOrNull()
+
+    fun memorySection() : WebAssemblyMemorySection? = _sections
+            .filter { it.type == SectionType.MEMORY }
+            .map { it as WebAssemblyMemorySection }.firstOrNull()
+
+    fun startSection() : WebAssemblyStartSection? = _sections
+            .filter { it.type == SectionType.START }
+            .map { it as WebAssemblyStartSection }.firstOrNull()
+
     fun isValid() : Boolean {
         val nCode = codeSection()?.nElements() ?: 0
         val nFunction = functionSection()?.nElements() ?: 0
         return nCode == nFunction
     }
+
+    fun  sectionsByType(sectionType: SectionType): List<WebAssemblySection> = sections.filter { it.type == sectionType }
 
 }

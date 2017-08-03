@@ -20,7 +20,7 @@ fun WebAssemblyTypeSection.storeData(abw: AdvancedBytesWriter) {
 }
 
 fun ValueType.storeData(abw: AdvancedBytesWriter) {
-    TODO()
+    abw.writeByte(this.id)
 }
 
 fun <E> storeVector(abw: AdvancedBytesWriter, elements: List<E>, storeElement: (AdvancedBytesWriter, E) -> Any ) {

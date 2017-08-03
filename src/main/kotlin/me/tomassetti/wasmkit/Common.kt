@@ -20,6 +20,19 @@ enum class ValueType(val id: Byte) {
     }
 }
 
-data class FuncType(val paramTypes: List<ValueType>, val returnTypes: List<ValueType>)
+data class FuncType(val paramTypes: List<ValueType>, val returnTypes: List<ValueType>) : Sized {
+    override fun sizeInBytes(): Long {
+        return (10 + paramTypes.size + returnTypes.size).toLong()
+    }
 
-data class Limits(val min: Long, val max: Long? = null)
+}
+
+data class Limits(val min: Long, val max: Long? = null) : Sized {
+    override fun sizeInBytes(): Long {
+        return if (max == null) 6 else 11
+    }
+}
+
+interface Sized {
+    fun sizeInBytes() : Long
+}

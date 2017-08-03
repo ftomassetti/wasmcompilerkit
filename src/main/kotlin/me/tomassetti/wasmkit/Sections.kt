@@ -21,11 +21,9 @@ enum class SectionType(val id: Byte) {
     }
 }
 
-abstract class WebAssemblySection(val type : SectionType) {
-    fun sizeInBytes() : Long = TODO()
-}
+abstract class WebAssemblySection(val type : SectionType) : Sized
 
-abstract class WebAssemblyVectorSection<E>(type : SectionType) : WebAssemblySection(type) {
+abstract class WebAssemblyVectorSection<E:Any>(type : SectionType) : WebAssemblySection(type) {
     private val _elements = LinkedList<E>()
 
     val elements : List<E>
@@ -36,9 +34,27 @@ abstract class WebAssemblyVectorSection<E>(type : SectionType) : WebAssemblySect
     }
 
     fun nElements() = _elements.size
+
+    override fun sizeInBytes(): Long {
+        // 1 for the type of the section
+        // 5 for the dimension of the section
+        val elementsSize = elements.foldRight(0L, { el, acc -> acc + elementSize(el) })
+        return 6 + elementsSize
+    }
+
+    private fun elementSize(element: Any): Long {
+        return when (element) {
+            is Sized -> element.sizeInBytes()
+            else -> TODO(element.toString())
+        }
+    }
 }
 
-class WebAssemblyCustomSection(val name: String, val data: ByteArray) : WebAssemblySection(SectionType.CUSTOM)
+class WebAssemblyCustomSection(val name: String, val data: ByteArray) : WebAssemblySection(SectionType.CUSTOM) {
+    override fun sizeInBytes(): Long {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+}
 
 class WebAssemblyTypeSection : WebAssemblyVectorSection<FuncType>(SectionType.TYPE)
 
@@ -54,7 +70,11 @@ class WebAssemblyGlobalSection : WebAssemblyVectorSection<GlobalDefinition>(Sect
 
 class WebAssemblyExportSection : WebAssemblyVectorSection<ExportEntry>(SectionType.EXPORT)
 
-class WebAssemblyStartSection(val startIndex: FuncIndex) : WebAssemblySection(SectionType.START)
+class WebAssemblyStartSection(val startIndex: FuncIndex) : WebAssemblySection(SectionType.START) {
+    override fun sizeInBytes(): Long {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+}
 
 class WebAssemblyElementSection : WebAssemblyVectorSection<ElementSegment>(SectionType.ELEMENT)
 
