@@ -149,4 +149,6 @@ data class CodeEntry(val locals: List<Pair<Long, ValueType>>, val code: CodeBloc
         return 5 + localsSize + code.sizeInBytes()
     }
 
+    fun payloadSize() = sizeInBytes() - 5
+
 }

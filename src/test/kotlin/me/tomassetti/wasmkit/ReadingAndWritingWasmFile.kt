@@ -1,8 +1,6 @@
 package me.tomassetti.wasmkit
 
-import me.tomassetti.wasmkit.serialization.AdvancedBytesWriter
-import me.tomassetti.wasmkit.serialization.ToBytesArrayBytesWriter
-import me.tomassetti.wasmkit.serialization.storeSection
+import me.tomassetti.wasmkit.serialization.*
 import java.io.InputStream
 import org.junit.Test as test
 import org.junit.Assert.*
@@ -113,7 +111,17 @@ class ReadingAndWritingWasmFile {
         val abw = AdvancedBytesWriter(toBA)
         storeSection(abw, load(bytes).sectionsByType(sectionType)[0])
 
-        assertEquals(sectionBytes.toList(), toBA.bytes().toList())
+        if (sectionBytes.size < 1000) {
+            assertEquals(sectionBytes.toList(), toBA.bytes().toList())
+        } else {
+            val expected = sectionBytes.toList()
+            val actual = toBA.bytes().toList()
+            assertEquals("Checking size: expected=${expected.size}, actual=${actual.size}", expected.size, actual.size)
+            expected.forEachIndexed { index, e ->
+                val a = actual[index]
+                assertEquals("Checking element with index=$index: expected=$e, actual=$a", e, a)
+            }
+        }
     }
 
     @test
@@ -134,6 +142,23 @@ class ReadingAndWritingWasmFile {
     @test
     fun readingAndWritingWebDspCWasmFileGlobalSection() {
         readingAndWritingSection("/webdsp_c.wasm", 561, 598, SectionType.GLOBAL)
+    }
+
+    @test
+    fun webDspCWasmFileExportSectionElementsHaveRightSize() {
+        val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/webdsp_c.wasm")
+        val exportSection = load(inputStream).exportSection()!!
+        exportSection.elements.forEach {
+            val expectedSize = it.sizeInBytes()
+            var res = 0L
+            val counter = object: BytesWriter {
+                override fun writeByte(byte: Byte) {
+                    res += 1
+                }
+            }
+            it.storeData(AdvancedBytesWriter(counter))
+            assertEquals(expectedSize, res)
+        }
     }
 
     @test

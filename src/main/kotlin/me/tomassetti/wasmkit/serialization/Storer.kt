@@ -64,7 +64,6 @@ private fun ExportData.storeData(abw: AdvancedBytesWriter) {
             abw.writeU32(this.index)
         }
         is TableExportData -> {
-            abw.writeByte(0x70)
             abw.writeU32(this.index)
         }
         else -> TODO()
@@ -97,15 +96,32 @@ private fun String.storeData(abw: AdvancedBytesWriter) {
 
 private fun WebAssemblyStartSection.storeData(abw: AdvancedBytesWriter) { TODO() }
 
-private fun WebAssemblyCodeSection.storeData(abw: AdvancedBytesWriter) { TODO() }
+private fun WebAssemblyCodeSection.storeData(abw: AdvancedBytesWriter) {
+    storeVector(abw, this.elements, { abw, e ->
+        abw.writeU32on5bytes(e.payloadSize())
+        storeVector(abw, e.locals, {abw, l ->
+            abw.writeU32(l.first)
+            abw.writeByte(l.second.id)
+        })
+        e.code.storeData(abw)
+    })
+}
+
+private fun CodeBlock.storeData(abw: AdvancedBytesWriter) {
+    abw.writeBytes(this.bytes)
+}
 
 private fun WebAssemblyCustomSection.storeData(abw: AdvancedBytesWriter) { TODO() }
 
 private fun WebAssemblyExportSection.storeData(abw: AdvancedBytesWriter) {
     storeVector(abw, this.elements, { abw, e ->
-        e.name.storeData(abw)
-        e.exportData.storeData(abw)
+        e.storeData(abw)
     })
+}
+
+fun ExportEntry.storeData(abw: AdvancedBytesWriter) {
+    name.storeData(abw)
+    exportData.storeData(abw)
 }
 
 private fun WebAssemblyElementSection.storeData(abw: AdvancedBytesWriter) {
@@ -119,7 +135,15 @@ private fun WebAssemblyElementSection.storeData(abw: AdvancedBytesWriter) {
     })
 }
 
-private fun WebAssemblyDataSection.storeData(abw: AdvancedBytesWriter) { TODO() }
+private fun WebAssemblyDataSection.storeData(abw: AdvancedBytesWriter) {
+    storeVector(abw, this.elements, { abw, e ->
+        abw.writeU32(e.x)
+        e.e.storeData(abw)
+        abw.writeByte(0x0B)
+        abw.writeU32(e.data.size.toLong())
+        abw.writeBytes(e.data)
+    })
+}
 
 private fun WebAssemblyFunctionSection.storeData(abw: AdvancedBytesWriter) {
     storeVector(abw, this.elements, { abw, e ->
@@ -139,11 +163,17 @@ private fun WebAssemblyGlobalSection.storeData(abw: AdvancedBytesWriter) {
 }
 
 private fun Instruction.storeData(abw: AdvancedBytesWriter) {
-    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    abw.writeByte(this.type.opcode)
+    when (this) {
+        is VarInstruction -> abw.writeU32(this.index)
+        is I32ConstInstruction -> abw.writeU32(this.value)
+        else -> TODO("Instruction of type $type")
+    }
 }
 
 private fun GlobalType.storeData(abw: AdvancedBytesWriter) {
-    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    this.valueType.storeData(abw)
+    this.mutability.storeData(abw)
 }
 
 fun WebAssemblyTypeSection.storeData(abw: AdvancedBytesWriter) {
