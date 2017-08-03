@@ -9,5 +9,5 @@ import java.util.*
 
 fun main(args: Array<String>) {
     val module = WebAssemblyModule()
-    File("example.wasm").writeBytes(module.generateBytes())
+    File("example.wasm").writeBytes(module.toBytes())
 }

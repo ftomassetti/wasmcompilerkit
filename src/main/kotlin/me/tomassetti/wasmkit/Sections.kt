@@ -26,13 +26,16 @@ abstract class WebAssemblySection(val type : SectionType) {
 }
 
 abstract class WebAssemblyVectorSection<E>(type : SectionType) : WebAssemblySection(type) {
-    private val elements = LinkedList<E>()
+    private val _elements = LinkedList<E>()
+
+    val elements : List<E>
+        get() = _elements.toList()
 
     fun addElement(element: E) {
-        elements.add(element)
+        _elements.add(element)
     }
 
-    fun nElements() = elements.size
+    fun nElements() = _elements.size
 }
 
 class WebAssemblyCustomSection(val name: String, val data: ByteArray) : WebAssemblySection(SectionType.CUSTOM)
