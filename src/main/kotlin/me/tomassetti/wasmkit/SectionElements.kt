@@ -16,7 +16,7 @@ enum class ImportType(val id: Byte) {
 
 data class ImportEntry(val module: String, val name: String, val importData: ImportData) : Sized {
     override fun sizeInBytes(): Long {
-        return 10 + module.toByteArray().size + name.toByteArray().size + importData.sizeInBytes()
+        return sizeInBytesOfU32(module.toByteArray().size) + module.toByteArray().size + sizeInBytesOfU32(name.toByteArray().size) + name.toByteArray().size + importData.sizeInBytes()
     }
 
 }
@@ -33,7 +33,7 @@ abstract class ImportData : Sized {
 
 data class GlobalImportData(val type: ValueType, val mutability: Boolean) : ImportData() {
     override fun sizeInBytes(): Long {
-        return 2
+        return 3
     }
 
     override fun type() = ImportType.GLOBAL
@@ -43,7 +43,7 @@ data class FunctionImportData(val typeIndex: TypeIndex) : ImportData() {
     override fun type() = ImportType.FUNC
 
     override fun sizeInBytes(): Long {
-        return sizeInBytesOfU32(typeIndex)
+        return 1 + sizeInBytesOfU32(typeIndex)
     }
 }
 
@@ -51,7 +51,7 @@ data class MemoryImportData(val limits: Limits) : ImportData() {
     override fun type() = ImportType.MEM
 
     override fun sizeInBytes(): Long {
-        return limits.sizeInBytes()
+        return 1 + limits.sizeInBytes()
     }
 }
 
@@ -59,7 +59,7 @@ data class TableImportData(val limits: Limits) : ImportData() {
     override fun type() = ImportType.TABLE
 
     override fun sizeInBytes(): Long {
-        return limits.sizeInBytes() + 1
+        return limits.sizeInBytes() + 2
     }
 }
 

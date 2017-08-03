@@ -106,13 +106,10 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
 
     private fun readTypeSection() : WebAssemblySection {
         val payloadLen = bytesReader.readU32()
-        println("   after payload pos=${bytesReader.currentIndex()}")
         val nFunctions = bytesReader.readU32()
-        println("   after nFunctions pos=${bytesReader.currentIndex()}")
         val section = WebAssemblyTypeSection()
         1.rangeTo(nFunctions).forEach {
             section.addElement(readFuncType())
-            println("   after en element pos=${bytesReader.currentIndex()}")
         }
         return section
     }

@@ -24,14 +24,14 @@ enum class ValueType(val id: Byte) {
 
 data class FuncType(val paramTypes: List<ValueType>, val returnTypes: List<ValueType>) : Sized {
     override fun sizeInBytes(): Long {
-        return sizeInBytesOfU32(paramTypes.size) + paramTypes.size + sizeInBytesOfU32(returnTypes.size) + returnTypes.size
+        return 1 + sizeInBytesOfU32(paramTypes.size) + paramTypes.size + sizeInBytesOfU32(returnTypes.size) + returnTypes.size
     }
 
 }
 
 data class Limits(val min: Long, val max: Long? = null) : Sized {
     override fun sizeInBytes(): Long {
-        return if (max == null) 6 else 11
+        return 1 + sizeInBytesOfU32(min) + if (max == null) 0 else sizeInBytesOfU32(max)
     }
 }
 
