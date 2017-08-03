@@ -1,5 +1,6 @@
 package me.tomassetti.wasmkit
 
+import me.tomassetti.wasmkit.serialization.sizeInBytesOfU32
 import java.util.*
 
 enum class SectionType(val id: Byte) {
@@ -21,7 +22,12 @@ enum class SectionType(val id: Byte) {
     }
 }
 
-abstract class WebAssemblySection(val type : SectionType) : Sized
+abstract class WebAssemblySection(val type : SectionType) : Sized {
+    abstract fun payloadSize() : Long
+    // 1 for the type of the section
+    // 5 for the payload of the section
+    final override fun sizeInBytes() = payloadSize() + 6
+}
 
 abstract class WebAssemblyVectorSection<E:Any>(type : SectionType) : WebAssemblySection(type) {
     private val _elements = LinkedList<E>()
@@ -35,23 +41,22 @@ abstract class WebAssemblyVectorSection<E:Any>(type : SectionType) : WebAssembly
 
     fun nElements() = _elements.size
 
-    override fun sizeInBytes(): Long {
-        // 1 for the type of the section
-        // 5 for the dimension of the section
-        val elementsSize = elements.foldRight(0L, { el, acc -> acc + elementSize(el) })
-        return 6 + elementsSize
+    override fun payloadSize(): Long {
+        val elementsSize = elements.fold(0L, { acc, el -> acc + elementSize(el) })
+        return sizeInBytesOfU32(elements.size) + elementsSize
     }
 
     private fun elementSize(element: Any): Long {
         return when (element) {
             is Sized -> element.sizeInBytes()
-            else -> TODO(element.toString())
+            is Long -> 5
+            else -> TODO(element.javaClass.canonicalName)
         }
     }
 }
 
 class WebAssemblyCustomSection(val name: String, val data: ByteArray) : WebAssemblySection(SectionType.CUSTOM) {
-    override fun sizeInBytes(): Long {
+    override fun payloadSize(): Long {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }
@@ -71,7 +76,7 @@ class WebAssemblyGlobalSection : WebAssemblyVectorSection<GlobalDefinition>(Sect
 class WebAssemblyExportSection : WebAssemblyVectorSection<ExportEntry>(SectionType.EXPORT)
 
 class WebAssemblyStartSection(val startIndex: FuncIndex) : WebAssemblySection(SectionType.START) {
-    override fun sizeInBytes(): Long {
+    override fun payloadSize(): Long {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }

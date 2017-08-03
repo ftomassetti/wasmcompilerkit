@@ -1,5 +1,7 @@
 package me.tomassetti.wasmkit
 
+import me.tomassetti.wasmkit.serialization.sizeInBytesOfU32
+
 typealias TableIndex = Long
 typealias TypeIndex = Long
 typealias FuncIndex = Long
@@ -22,7 +24,7 @@ enum class ValueType(val id: Byte) {
 
 data class FuncType(val paramTypes: List<ValueType>, val returnTypes: List<ValueType>) : Sized {
     override fun sizeInBytes(): Long {
-        return (10 + paramTypes.size + returnTypes.size).toLong()
+        return sizeInBytesOfU32(paramTypes.size) + paramTypes.size + sizeInBytesOfU32(returnTypes.size) + returnTypes.size
     }
 
 }

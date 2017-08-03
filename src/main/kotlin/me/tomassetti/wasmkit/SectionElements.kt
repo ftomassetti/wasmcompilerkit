@@ -1,8 +1,6 @@
 package me.tomassetti.wasmkit
 
-import me.tomassetti.wasmkit.Instruction
-import me.tomassetti.wasmkit.Limits
-import me.tomassetti.wasmkit.ValueType
+import me.tomassetti.wasmkit.serialization.sizeInBytesOfU32
 
 enum class ImportType(val id: Byte) {
     FUNC(0x00),
@@ -35,7 +33,7 @@ abstract class ImportData : Sized {
 
 data class GlobalImportData(val type: ValueType, val mutability: Boolean) : ImportData() {
     override fun sizeInBytes(): Long {
-        TODO()
+        return 2
     }
 
     override fun type() = ImportType.GLOBAL
@@ -45,7 +43,7 @@ data class FunctionImportData(val typeIndex: TypeIndex) : ImportData() {
     override fun type() = ImportType.FUNC
 
     override fun sizeInBytes(): Long {
-        TODO()
+        return sizeInBytesOfU32(typeIndex)
     }
 }
 
@@ -53,7 +51,7 @@ data class MemoryImportData(val limits: Limits) : ImportData() {
     override fun type() = ImportType.MEM
 
     override fun sizeInBytes(): Long {
-        TODO()
+        return limits.sizeInBytes()
     }
 }
 
@@ -61,7 +59,7 @@ data class TableImportData(val limits: Limits) : ImportData() {
     override fun type() = ImportType.TABLE
 
     override fun sizeInBytes(): Long {
-        TODO()
+        return limits.sizeInBytes() + 1
     }
 }
 

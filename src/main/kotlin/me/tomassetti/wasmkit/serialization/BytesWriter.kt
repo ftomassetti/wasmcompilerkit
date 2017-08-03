@@ -16,6 +16,30 @@ class ToBytesArrayBytesWriter : BytesWriter {
     fun bytes() = byteArrayOutputStream.toByteArray()
 }
 
+fun sizeInBytesOfU32(value: Int) = sizeInBytesOfU32(value.toLong())
+
+fun sizeInBytesOfU32(value: Long) : Long{
+    var res = 0L
+    val counter = object: BytesWriter {
+        override fun writeByte(byte: Byte) {
+            res += 1
+        }
+    }
+    AdvancedBytesWriter(counter).writeU32(value)
+    return res
+}
+
+fun sizeInBytesOfS32(value: Long) : Long{
+    var res = 0L
+    val counter = object: BytesWriter {
+        override fun writeByte(byte: Byte) {
+            res += 1
+        }
+    }
+    AdvancedBytesWriter(counter).writeS32(value)
+    return res
+}
+
 class AdvancedBytesWriter(val basic: BytesWriter) {
 
     fun writeByte(byte: Byte) {

@@ -19,9 +19,11 @@ class ReadingAndWritingWasmFile {
         // obtained from https://d2jta7o2zej4pf.cloudfront.net/
         val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/webdsp_c.wasm")
         val bytes = inputStream.readBytes()
-        val sectionSize = load(bytes).typeSection()!!.sizeInBytes()
+        val section = load(bytes).typeSection()!!
+        val sectionSize = section.sizeInBytes()
 
-        assertEquals(95, sectionSize)
+        assertEquals(101, sectionSize)
+        assertEquals(95, section.payloadSize())
     }
 
     @test
@@ -29,9 +31,11 @@ class ReadingAndWritingWasmFile {
         // obtained from https://d2jta7o2zej4pf.cloudfront.net/
         val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/webdsp_c.wasm")
         val bytes = inputStream.readBytes()
-        val sectionSize = load(bytes).importSection()!!.sizeInBytes()
+        val section = load(bytes).importSection()!!
+        val sectionSize = section.sizeInBytes()
 
-        assertEquals(393, sectionSize)
+        assertEquals(399, sectionSize)
+        assertEquals(393, section.payloadSize())
     }
 
     @test
@@ -39,9 +43,10 @@ class ReadingAndWritingWasmFile {
         // obtained from https://d2jta7o2zej4pf.cloudfront.net/
         val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/webdsp_c.wasm")
         val bytes = inputStream.readBytes()
-        val sectionSize = load(bytes).functionSection()!!.sizeInBytes()
+        val section = load(bytes).functionSection()!!
 
-        assertEquals(47, sectionSize)
+        assertEquals(53, section.sizeInBytes())
+        assertEquals(47, section.payloadSize())
     }
 
     @test
@@ -49,9 +54,10 @@ class ReadingAndWritingWasmFile {
         // obtained from https://d2jta7o2zej4pf.cloudfront.net/
         val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/webdsp_c.wasm")
         val bytes = inputStream.readBytes()
-        val sectionSize = load(bytes).globalSection()!!.sizeInBytes()
+        val section = load(bytes).globalSection()!!
 
-        assertEquals(31, sectionSize)
+        assertEquals(37, section.sizeInBytes())
+        assertEquals(31, section.payloadSize())
     }
 
     @test
@@ -59,9 +65,10 @@ class ReadingAndWritingWasmFile {
         // obtained from https://d2jta7o2zej4pf.cloudfront.net/
         val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/webdsp_c.wasm")
         val bytes = inputStream.readBytes()
-        val sectionSize = load(bytes).exportSection()!!.sizeInBytes()
+        val section = load(bytes).exportSection()!!
 
-        assertEquals(377, sectionSize)
+        assertEquals(383, section.sizeInBytes())
+        assertEquals(377, section.payloadSize())
     }
 
     @test
@@ -69,9 +76,10 @@ class ReadingAndWritingWasmFile {
         // obtained from https://d2jta7o2zej4pf.cloudfront.net/
         val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/webdsp_c.wasm")
         val bytes = inputStream.readBytes()
-        val sectionSize = load(bytes).elementSection()!!.sizeInBytes()
+        val section = load(bytes).elementSection()!!
 
-        assertEquals(12, sectionSize)
+        assertEquals(18, section.sizeInBytes())
+        assertEquals(12, section.payloadSize())
     }
 
     @test
@@ -79,9 +87,10 @@ class ReadingAndWritingWasmFile {
         // obtained from https://d2jta7o2zej4pf.cloudfront.net/
         val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/webdsp_c.wasm")
         val bytes = inputStream.readBytes()
-        val sectionSize = load(bytes).codeSection()!!.sizeInBytes()
+        val section = load(bytes).codeSection()!!
 
-        assertEquals(14145, sectionSize)
+        assertEquals(14151, section.sizeInBytes())
+        assertEquals(14145, section.payloadSize())
     }
 
     @test
@@ -89,9 +98,10 @@ class ReadingAndWritingWasmFile {
         // obtained from https://d2jta7o2zej4pf.cloudfront.net/
         val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/webdsp_c.wasm")
         val bytes = inputStream.readBytes()
-        val sectionSize = load(bytes).dataSection()!!.sizeInBytes()
+        val section = load(bytes).dataSection()!!
 
-        assertEquals(69, sectionSize)
+        assertEquals(75, section.sizeInBytes())
+        assertEquals(69, section.payloadSize())
     }
 
     fun readingAndWritingSection(resourceName: String, start:Int, end:Int, sectionType: SectionType) {
