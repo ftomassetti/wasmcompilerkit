@@ -145,8 +145,8 @@ class CodeBlock(val bytes: ByteArray) : Sized {
 data class CodeEntry(val locals: List<Pair<Long, ValueType>>, val code: CodeBlock) : Sized {
     override fun sizeInBytes(): Long {
         val localsSize = sizeInBytesOfU32(locals.size) + locals.fold(0L, { acc, (first) -> acc + sizeInBytesOfU32(first) + 1})
-        val codeSize = code.sizeInBytes() + localsSize
-        return sizeInBytesOfU32(codeSize) + localsSize + code.sizeInBytes()
+        // the code size takes 5 bytes
+        return 5 + localsSize + code.sizeInBytes()
     }
 
 }

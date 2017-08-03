@@ -89,16 +89,22 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
 
     private fun readCodeSection() : WebAssemblySection {
         val payloadLen = bytesReader.readU32()
+        println("  after payload pos=${bytesReader.currentIndex()}")
         val nElements = bytesReader.readU32()
+        println("  nElements pos=${bytesReader.currentIndex()}")
         val section = WebAssemblyCodeSection()
         1.rangeTo(nElements).forEach {
             val codeSize = bytesReader.readU32()
+            println("    after codeSize pos=${bytesReader.currentIndex()}")
             val startPos = bytesReader.currentIndex()
             val nLocals = bytesReader.readU32()
+            println("    after nLocals pos=${bytesReader.currentIndex()}")
             val locals = 1.rangeTo(nLocals).map { Pair(bytesReader.readU32(), readType()) }
+            println("    after locals pos=${bytesReader.currentIndex()}")
             val currentPos = bytesReader.currentIndex()
             val bytesToRead = codeSize - (currentPos - startPos)
             val codeBytes = bytesReader.readBytes(bytesToRead)
+            println("  after element pos=${bytesReader.currentIndex()}")
             section.addElement(CodeEntry(locals, CodeBlock(codeBytes)))
         }
         return section

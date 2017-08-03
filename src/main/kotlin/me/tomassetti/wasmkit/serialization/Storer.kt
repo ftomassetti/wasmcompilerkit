@@ -4,7 +4,7 @@ import me.tomassetti.wasmkit.*
 
 fun storeSection(abw: AdvancedBytesWriter, section: WebAssemblySection) {
     abw.writeByte(section.type.id)
-    abw.writeU32(section.sizeInBytes())
+    abw.writeU32on5bytes(section.payloadSize())
     when (section.type) {
         SectionType.TYPE -> (section as WebAssemblyTypeSection).storeData(abw)
         else -> TODO("Serialization of section ${section.type}")
