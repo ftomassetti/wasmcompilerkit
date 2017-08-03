@@ -23,7 +23,7 @@ data class ImportEntry(val module: String, val name: String, val importData: Imp
 
 data class ExportEntry(val name: String, val exportData: ExportData) : Sized {
     override fun sizeInBytes(): Long {
-        return 5 + name.toByteArray().size + exportData.sizeInBytes()
+        return sizeInBytesOfU32(name.toByteArray().size) + name.toByteArray().size + exportData.sizeInBytes()
     }
 }
 
@@ -71,7 +71,7 @@ data class GlobalExportData(val index: Long) : ExportData() {
     override fun type() = ImportType.GLOBAL
 
     override fun sizeInBytes(): Long {
-        TODO()
+        return 1 + sizeInBytesOfU32(index)
     }
 }
 
@@ -79,7 +79,7 @@ data class FunctionExportData(val index: Long) : ExportData() {
     override fun type() = ImportType.FUNC
 
     override fun sizeInBytes(): Long {
-        TODO()
+        return 1 + sizeInBytesOfU32(index)
     }
 }
 
@@ -87,7 +87,7 @@ data class MemoryExportData(val index: Long) : ExportData() {
     override fun type() = ImportType.MEM
 
     override fun sizeInBytes(): Long {
-        TODO()
+        return 1 + sizeInBytesOfU32(index)
     }
 }
 
@@ -95,7 +95,7 @@ data class TableExportData(val index: Long) : ExportData() {
     override fun type() = ImportType.TABLE
 
     override fun sizeInBytes(): Long {
-        TODO()
+        return 1 + sizeInBytesOfU32(index)
     }
 }
 
@@ -125,20 +125,28 @@ data class GlobalDefinition(val globalType: GlobalType, val expr: Instruction) :
 
 data class DataSegment(val x: MemIndex, val e: Instruction, val data: ByteArray) : Sized {
     override fun sizeInBytes(): Long {
-        TODO()
+        return sizeInBytesOfU32(x) + e.sizeInBytes() + 1 + sizeInBytesOfU32(data.size) + data.size
     }
 }
 
 data class ElementSegment(val tableIndex: TableIndex, val expr: Instruction, val init: List<FuncIndex>) : Sized {
     override fun sizeInBytes(): Long {
-        TODO()
+        return sizeInBytesOfU32(tableIndex) + expr.sizeInBytes() + 1 + sizeInBytesOfU32(init.size) + init.fold(0L, {acc, el -> acc + sizeInBytesOfU32(el)})
     }
 }
 
-class CodeBlock(val bytes: ByteArray)
+class CodeBlock(val bytes: ByteArray) : Sized {
+    override fun sizeInBytes(): Long {
+        return bytes.size.toLong()
+    }
+
+}
 
 data class CodeEntry(val locals: List<Pair<Long, ValueType>>, val code: CodeBlock) : Sized {
     override fun sizeInBytes(): Long {
-        TODO()
+        val localsSize = sizeInBytesOfU32(locals.size) + locals.fold(0L, { acc, (first) -> acc + sizeInBytesOfU32(first) + 1})
+        val codeSize = code.sizeInBytes() + localsSize
+        return sizeInBytesOfU32(codeSize) + localsSize + code.sizeInBytes()
     }
+
 }
