@@ -8,7 +8,7 @@ class ReadingAndWritingWasmFile {
 
     private fun loadAndStoreWorks(inputStream: InputStream) {
         val bytes = inputStream.readBytes()
-        assertEquals(bytes, load(bytes).toBytes())
+        assertEquals(bytes.toList(), load(bytes).toBytes().toList())
     }
 
     @test

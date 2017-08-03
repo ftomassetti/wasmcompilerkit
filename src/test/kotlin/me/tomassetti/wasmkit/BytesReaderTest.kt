@@ -13,7 +13,7 @@ class BytesReaderTest {
     }
 
     @test
-    fun decodeMi2us624485() {
+    fun decodeMinus624485() {
         val bytes = byteArrayOf(0x9B.toByte(), 0xF1.toByte(), 0x59)
         assertEquals(-624485L, BytesReader(bytes).readS32())
     }
