@@ -4,12 +4,21 @@ import me.tomassetti.wasmkit.serialization.*
 import java.io.InputStream
 import org.junit.Test as test
 import org.junit.Assert.*
+import java.io.ByteArrayInputStream
 
 class ReadingAndWritingWasmFile {
 
     private fun loadAndStoreWorks(inputStream: InputStream) {
         val bytes = inputStream.readBytes()
         assertEquals(bytes.toList(), load(bytes).toBytes().toList())
+    }
+
+    private fun loadAndStoreAndLoadWorks(inputStream: InputStream) {
+        val bytesOriginal = inputStream.readBytes()
+        val loaded = load(bytesOriginal)
+        val stored = loaded.toBytes()
+        val reloaded = load(stored)
+        assertEquals(loaded, reloaded)
     }
 
     @test
@@ -124,6 +133,22 @@ class ReadingAndWritingWasmFile {
         }
     }
 
+    fun writingAndReadingSection(resourceName: String, start:Int, end:Int, sectionType: SectionType) {
+        val inputStream = ReadingWasmFile::class.java.getResourceAsStream(resourceName)
+        val bytes = inputStream.readBytes()
+        val sectionBytes = bytes.copyOfRange(start, end)
+
+        val toBA = ToBytesArrayBytesWriter()
+        val abw = AdvancedBytesWriter(toBA)
+        val section1 = load(bytes).sectionsByType(sectionType)[0]
+        storeSection(abw, section1)
+        val module = WebAssemblyModule()
+        WebAssemblyLoader(toBA.bytes(), module).readSection()
+        val section2 = module.sectionsByType(sectionType)[0]
+
+        assertEquals(section1, section2)
+    }
+
     @test
     fun readingAndWritingWebDspCWasmFileTypeSection() {
         readingAndWritingSection("/webdsp_c.wasm", 8, 109, SectionType.TYPE)
@@ -189,23 +214,33 @@ class ReadingAndWritingWasmFile {
     }
 
     @test
-    fun loadingDynamicWasmFile() {
+    fun loadingDynamicCollWasmFileTableSection() {
+        writingAndReadingSection("/dynamics.wasm", 49, 54, SectionType.TABLE)
+    }
+
+    @test
+    fun loadingDynamicCollWasmFileMemorySection() {
+        writingAndReadingSection("/dynamics.wasm", 54, 59, SectionType.MEMORY)
+    }
+
+    @test
+    fun loadingDynamicsWasmFile() {
         // obtained from https://github.com/guybedford/wasm-demo
         val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/dynamics.wasm")
-        loadAndStoreWorks(inputStream)
+        loadAndStoreAndLoadWorks(inputStream)
     }
 
     @test
     fun loadingDynamicCollWasmFile() {
         // obtained from https://github.com/guybedford/wasm-demo
         val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/dynamics-coll.wasm")
-        loadAndStoreWorks(inputStream)
+        loadAndStoreAndLoadWorks(inputStream)
     }
 
     @test
     fun loadingDynamicOptFile() {
         // obtained from https://github.com/guybedford/wasm-demo
         val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/dynamics-opt.wasm")
-        loadAndStoreWorks(inputStream)
+        loadAndStoreAndLoadWorks(inputStream)
     }
 }

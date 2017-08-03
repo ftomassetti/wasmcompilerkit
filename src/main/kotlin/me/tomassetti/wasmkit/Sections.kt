@@ -53,6 +53,26 @@ abstract class WebAssemblyVectorSection<E:Any>(type : SectionType) : WebAssembly
             else -> TODO(element.javaClass.canonicalName)
         }
     }
+
+    override fun toString(): String {
+        return "WebAssemblyVectorSection(_elements=$_elements)"
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other?.javaClass != javaClass) return false
+
+        other as WebAssemblyVectorSection<*>
+
+        if (_elements != other._elements) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return _elements.hashCode()
+    }
+
 }
 
 class WebAssemblyCustomSection(val name: String, val data: ByteArray) : WebAssemblySection(SectionType.CUSTOM) {

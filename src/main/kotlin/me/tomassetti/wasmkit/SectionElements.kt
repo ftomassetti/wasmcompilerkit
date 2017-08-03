@@ -1,6 +1,7 @@
 package me.tomassetti.wasmkit
 
 import me.tomassetti.wasmkit.serialization.sizeInBytesOfU32
+import java.util.*
 
 enum class ImportType(val id: Byte) {
     FUNC(0x00),
@@ -101,13 +102,13 @@ data class TableExportData(val index: Long) : ExportData() {
 
 data class TableDefinition(val limits: Limits) : Sized {
     override fun sizeInBytes(): Long {
-        TODO()
+        return 1 + limits.sizeInBytes()
     }
 }
 
 data class MemoryDefinition(val limits: Limits) : Sized {
     override fun sizeInBytes(): Long {
-        TODO()
+        return limits.sizeInBytes()
     }
 }
 
@@ -139,6 +140,22 @@ class CodeBlock(val bytes: ByteArray) : Sized {
     override fun sizeInBytes(): Long {
         return bytes.size.toLong()
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other?.javaClass != javaClass) return false
+
+        other as CodeBlock
+
+        if (!Arrays.equals(bytes, other.bytes)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return Arrays.hashCode(bytes)
+    }
+
 
 }
 

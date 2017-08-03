@@ -80,4 +80,26 @@ class WebAssemblyModule(var version: WebAssemblyVersion = WebAssemblyVersion.WAS
 
     fun  sectionsByType(sectionType: SectionType): List<WebAssemblySection> = sections.filter { it.type == sectionType }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other?.javaClass != javaClass) return false
+
+        other as WebAssemblyModule
+
+        if (version != other.version) return false
+        if (_sections != other._sections) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = version.hashCode()
+        result = 31 * result + _sections.hashCode()
+        return result
+    }
+
+    override fun toString(): String {
+        return "WebAssemblyModule(version=$version, _sections=$_sections)"
+    }
+
 }

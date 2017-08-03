@@ -151,8 +151,18 @@ private fun WebAssemblyFunctionSection.storeData(abw: AdvancedBytesWriter) {
     })
 }
 
-private fun WebAssemblyMemorySection.storeData(abw: AdvancedBytesWriter) { TODO() }
-private fun WebAssemblyTableSection.storeData(abw: AdvancedBytesWriter) { TODO() }
+private fun WebAssemblyMemorySection.storeData(abw: AdvancedBytesWriter) {
+    storeVector(abw, this.elements, { abw, e ->
+        e.limits.storeData(abw)
+    })
+}
+
+private fun WebAssemblyTableSection.storeData(abw: AdvancedBytesWriter) {
+    storeVector(abw, this.elements, { abw, e ->
+        abw.writeByte(0x70)
+        e.limits.storeData(abw)
+    })
+}
 
 private fun WebAssemblyGlobalSection.storeData(abw: AdvancedBytesWriter) {
     storeVector(abw, this.elements, { abw, e ->
