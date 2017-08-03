@@ -49,7 +49,7 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
         val nElements = bytesReader.readU32()
         val section = WebAssemblyMemorySection()
         1.rangeTo(nElements).forEach {
-            section.addMemory(MemoryDefinition(readLimits()))
+            section.addElement(MemoryDefinition(readLimits()))
         }
         return section
     }
@@ -59,7 +59,7 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
         val nElements = bytesReader.readU32()
         val section = WebAssemblyTableSection()
         1.rangeTo(nElements).forEach {
-            section.addTable(readTableDefinition())
+            section.addElement(readTableDefinition())
         }
         return section
     }
@@ -78,7 +78,7 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
             val e = readExpression()
             val nBytes = bytesReader.readU32()
             val b = bytesReader.readBytes(nBytes)
-            section.addSegment(DataSegment(x, e, b))
+            section.addElement(DataSegment(x, e, b))
         }
         return section
     }
@@ -95,7 +95,7 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
             val currentPos = bytesReader.currentIndex()
             val bytesToRead = codeSize - (currentPos - startPos)
             val codeBytes = bytesReader.readBytes(bytesToRead)
-            section.addEntry(CodeEntry(locals, CodeBlock(codeBytes)))
+            section.addElement(CodeEntry(locals, CodeBlock(codeBytes)))
         }
         return section
     }
@@ -105,7 +105,7 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
         val nFunctions = bytesReader.readU32()
         val section = WebAssemblyTypeSection()
         1.rangeTo(nFunctions).forEach {
-            section.addFuncType(readFuncType())
+            section.addElement(readFuncType())
         }
         return section
     }
@@ -115,7 +115,7 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
         val nImports = bytesReader.readU32()
         val section = WebAssemblyImportSection()
         1.rangeTo(nImports).forEach {
-            section.addImport(readImportEntry())
+            section.addElement(readImportEntry())
         }
         return section
     }
@@ -125,7 +125,7 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
         val nElements = bytesReader.readU32()
         val section = WebAssemblyExportSection()
         1.rangeTo(nElements).forEach {
-            section.addEntry(readExportEntry())
+            section.addElement(readExportEntry())
         }
         return section
     }
@@ -135,7 +135,7 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
         val nFunctions = bytesReader.readU32()
         val section = WebAssemblyFunctionSection()
         1.rangeTo(nFunctions).forEach {
-            section.addTypeIndex(bytesReader.readU32())
+            section.addElement(bytesReader.readU32())
         }
         return section
     }
@@ -145,7 +145,7 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
         val nGlobals = bytesReader.readU32()
         val section = WebAssemblyGlobalSection()
         1.rangeTo(nGlobals).forEach {
-            section.addGlobalDefinition(readGlobalDefinition())
+            section.addElement(readGlobalDefinition())
         }
         return section
     }
@@ -155,7 +155,7 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
         val nElements = bytesReader.readU32()
         val section = WebAssemblyElementSection()
         1.rangeTo(nElements).forEach {
-            section.addSegment(readElementSegment())
+            section.addElement(readElementSegment())
         }
         return section
     }
