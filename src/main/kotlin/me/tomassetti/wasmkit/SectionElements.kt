@@ -156,7 +156,6 @@ class CodeBlock(val bytes: ByteArray) : Sized {
         return Arrays.hashCode(bytes)
     }
 
-
 }
 
 data class CodeEntry(val locals: List<Pair<Long, ValueType>>, val code: CodeBlock) : Sized {

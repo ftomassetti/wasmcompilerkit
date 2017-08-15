@@ -1,10 +1,9 @@
 package me.tomassetti.wasmkit
 
 import me.tomassetti.wasmkit.serialization.*
+import org.junit.Assert.assertEquals
 import java.io.InputStream
 import org.junit.Test as test
-import org.junit.Assert.*
-import java.io.ByteArrayInputStream
 
 class ReadingAndWritingWasmFile {
 

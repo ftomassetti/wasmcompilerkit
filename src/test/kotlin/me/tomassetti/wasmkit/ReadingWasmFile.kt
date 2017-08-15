@@ -1,14 +1,15 @@
 package me.tomassetti.wasmkit
 
+import me.tomassetti.wasmkit.serialization.interpret
 import java.io.InputStream
 import org.junit.Test as test
 import org.junit.Assert.*
 
 class ReadingWasmFile {
 
-    private fun loadWorks(inputStream: InputStream) {
+    private fun loadWorks(inputStream: InputStream) : WebAssemblyModule {
         val bytes = inputStream.readBytes()
-        load(bytes)
+        return load(bytes)
     }
 
     @test
@@ -16,6 +17,13 @@ class ReadingWasmFile {
         // obtained from https://d2jta7o2zej4pf.cloudfront.net/
         val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/webdsp_c.wasm")
         loadWorks(inputStream)
+    }
+
+    @test
+    fun readingWebDspCWasmFileCode() {
+        // obtained from https://d2jta7o2zej4pf.cloudfront.net/
+        val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/webdsp_c.wasm")
+        loadWorks(inputStream).codeSection()!!.elements.forEach { it.code.interpret() }
     }
 
     @test

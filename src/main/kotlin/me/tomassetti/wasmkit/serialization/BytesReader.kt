@@ -46,4 +46,11 @@ class BytesReader(val bytes: ByteArray) {
         return result
     }
 
+    fun expectByte(expectedByte: Byte) {
+        val readByte = readNextByte()
+        if (readByte != expectedByte) {
+            throw RuntimeException("Invalid byte found. Expected $expectedByte found $readByte")
+        }
+    }
+
 }

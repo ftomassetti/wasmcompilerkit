@@ -1,6 +1,70 @@
 package me.tomassetti.wasmkit.serialization
 
 import me.tomassetti.wasmkit.*
+import java.util.*
+
+sealed class BlockType
+object emptyBlockType : BlockType()
+data class ValuedBlockType(val valueType: ValueType) : BlockType()
+
+private fun readBlockType(bytesReader: BytesReader) : BlockType {
+    val byte = bytesReader.readNextByte()
+    if (byte == 0x40.toByte()) {
+        return emptyBlockType
+    } else {
+        return ValuedBlockType(ValueType.fromId(byte))
+    }
+}
+
+private fun readExpression(bytesReader: BytesReader, delimiterExpected : Boolean = true): Instruction {
+    val instructionType = InstructionType.fromOpcode(bytesReader.readNextByte())
+    val instruction = when (instructionType.family) {
+        InstructionFamily.VAR -> VarInstruction(instructionType, bytesReader.readU32())
+        InstructionFamily.NUMERIC_CONST -> {
+            when (instructionType) {
+                InstructionType.I32CONST -> I32ConstInstruction(instructionType, bytesReader.readU32())
+                else -> throw UnsupportedOperationException("Instruction $instructionType")
+            }
+        }
+        InstructionFamily.BLOCKS -> {
+            when (instructionType) {
+                InstructionType.BLOCK -> {
+                    val blockType = readBlockType(bytesReader)
+                    val instructions = LinkedList<Instruction>()
+                    while (bytesReader.peekNextByte() != 0x0B.toByte()) {
+                        instructions.add(readExpression(bytesReader, delimiterExpected = false))
+                    }
+                    return BlockInstruction(blockType, instructions)
+                }
+                else -> throw UnsupportedOperationException("Instruction $instructionType")
+            }
+        }
+        InstructionFamily.NUMERIC_OP -> {
+            when (instructionType) {
+                InstructionType.I32ADD -> {
+                    val left = readExpression(bytesReader, delimiterExpected = false)
+                    val right = readExpression(bytesReader, delimiterExpected = false)
+                    return I32AddInstruction(left, right)
+                }
+                else -> throw UnsupportedOperationException("Instruction $instructionType")
+            }
+        }
+        else -> throw UnsupportedOperationException("Instruction $instructionType")
+    }
+    if (delimiterExpected) {
+        bytesReader.expectByte(0x0B)
+    }
+    return instruction
+}
+
+fun CodeBlock.interpret() : Instruction {
+    val bytesReader = BytesReader(this.bytes)
+    val instruction = readExpression(bytesReader)
+    if (!bytesReader.hasFinished()) {
+        throw IllegalStateException()
+    }
+    return instruction
+}
 
 class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
     private val bytesReader = BytesReader(bytes)
@@ -174,21 +238,7 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
 
     private fun readGlobalType() = GlobalType(readType(), readBoolean())
 
-    private fun readExpression(): Instruction {
-        val instructionType = InstructionType.fromOpcode(bytesReader.readNextByte())
-        val instruction = when (instructionType.family) {
-            InstructionFamily.VAR -> VarInstruction(instructionType, bytesReader.readU32())
-            InstructionFamily.NUMERIC_CONST -> {
-                when (instructionType) {
-                    InstructionType.I32CONST -> I32ConstInstruction(instructionType, bytesReader.readU32())
-                    else -> throw UnsupportedOperationException("Instruction $instructionType")
-                }
-            }
-            else -> throw UnsupportedOperationException("Instruction $instructionType")
-        }
-        expectByte(0x0B)
-        return instruction
-    }
+    private fun readExpression() = readExpression(bytesReader)
 
     private fun readImportData() : ImportData {
         val importType = ImportType.fromId(readNextByte())

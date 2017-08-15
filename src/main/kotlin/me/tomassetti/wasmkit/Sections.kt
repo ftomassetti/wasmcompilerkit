@@ -22,7 +22,7 @@ enum class SectionType(val id: Byte) {
     }
 }
 
-abstract class WebAssemblySection(val type : SectionType) : Sized {
+sealed class WebAssemblySection(val type : SectionType) : Sized {
     abstract fun payloadSize() : Long
     // 1 for the type of the section
     // 5 for the payload of the section

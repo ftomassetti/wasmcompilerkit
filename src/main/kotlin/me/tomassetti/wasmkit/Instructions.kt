@@ -1,19 +1,22 @@
 package me.tomassetti.wasmkit
 
+import me.tomassetti.wasmkit.serialization.BlockType
 import me.tomassetti.wasmkit.serialization.sizeInBytesOfU32
 
 enum class InstructionFamily {
     UNSPECIFIED,
     VAR,
-    NUMERIC_CONST
+    NUMERIC_CONST,
+    BLOCKS,
+    NUMERIC_OP
 }
 
 enum class InstructionType(val opcode: Byte, val family: InstructionFamily = InstructionFamily.UNSPECIFIED) {
     UNREACHABLE(0x00),
     NOP(0x01),
-    BLOCK(0x02),
-    LOOP(0x03),
-    IF(0x04),
+    BLOCK(0x02, InstructionFamily.BLOCKS),
+    LOOP(0x03, InstructionFamily.BLOCKS),
+    IF(0x04, InstructionFamily.BLOCKS),
     JUMP(0x0C),
     CONDJUMP(0x0D),
     TABLEJUMP(0x0E),
@@ -98,7 +101,7 @@ enum class InstructionType(val opcode: Byte, val family: InstructionFamily = Ins
     I32CLZ(0x67),
     I32CTX(0x68),
     I32POPCNT(0x69),
-    I32ADD(0x6A),
+    I32ADD(0x6A, InstructionFamily.NUMERIC_OP),
     I32SUB(0x6B),
     I32MUL(0x6C),
     I32DIVS(0x6D),
@@ -197,7 +200,7 @@ enum class InstructionType(val opcode: Byte, val family: InstructionFamily = Ins
     }
 }
 
-abstract class Instruction(val type: InstructionType) {
+sealed class Instruction(val type: InstructionType) {
     open fun sizeInBytes(): Long = TODO("Instruction of type $type")
 }
 
@@ -205,6 +208,7 @@ class VarInstruction(type: InstructionType, val index: Long) : Instruction(type)
     override fun sizeInBytes(): Long = 1 + sizeInBytesOfU32(index)
 
 }
+
 class I32ConstInstruction(type: InstructionType, val value: Long) : Instruction(type) {
     override fun sizeInBytes(): Long {
         return when (type) {
@@ -213,3 +217,9 @@ class I32ConstInstruction(type: InstructionType, val value: Long) : Instruction(
         }
     }
 }
+
+class BlockInstruction(val blockType: BlockType, val content: List<Instruction>) : Instruction(InstructionType.BLOCK)
+
+open class BinaryInstruction(type: InstructionType, val left: Instruction, val right: Instruction) : Instruction(type)
+
+class I32AddInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32ADD, left, right)
