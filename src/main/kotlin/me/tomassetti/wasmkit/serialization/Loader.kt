@@ -7,6 +7,9 @@ sealed class BlockType
 object emptyBlockType : BlockType()
 data class ValuedBlockType(val valueType: ValueType) : BlockType()
 
+private val ELSE_BYTE = 0x05.toByte()
+private val END_BYTE = 0x0B.toByte()
+
 private fun readBlockType(bytesReader: BytesReader) : BlockType {
     val byte = bytesReader.readNextByte()
     if (byte == 0x40.toByte()) {
@@ -31,10 +34,37 @@ private fun readExpression(bytesReader: BytesReader, delimiterExpected : Boolean
                 InstructionType.BLOCK -> {
                     val blockType = readBlockType(bytesReader)
                     val instructions = LinkedList<Instruction>()
-                    while (bytesReader.peekNextByte() != 0x0B.toByte()) {
+                    while (bytesReader.peekNextByte() != END_BYTE) {
                         instructions.add(readExpression(bytesReader, delimiterExpected = false))
                     }
-                    return BlockInstruction(blockType, instructions)
+                    bytesReader.expectByte(END_BYTE)
+                    BlockInstruction(blockType, instructions)
+                }
+                InstructionType.LOOP -> {
+                    val blockType = readBlockType(bytesReader)
+                    val instructions = LinkedList<Instruction>()
+                    while (bytesReader.peekNextByte() != END_BYTE) {
+                        instructions.add(readExpression(bytesReader, delimiterExpected = false))
+                    }
+                    bytesReader.expectByte(END_BYTE)
+                    LoopInstruction(blockType, instructions)
+                }
+                InstructionType.IF -> {
+                    val blockType = readBlockType(bytesReader)
+                    val thenInstructions = LinkedList<Instruction>()
+                    var elseInstructions : MutableList<Instruction>? = null
+                    while (bytesReader.peekNextByte() != ELSE_BYTE && bytesReader.peekNextByte() != END_BYTE) {
+                        thenInstructions.add(readExpression(bytesReader, delimiterExpected = false))
+                    }
+                    if (bytesReader.peekNextByte() == ELSE_BYTE) {
+                        bytesReader.expectByte(ELSE_BYTE)
+                        elseInstructions = LinkedList<Instruction>()
+                        while (bytesReader.peekNextByte() != END_BYTE) {
+                            elseInstructions.add(readExpression(bytesReader, delimiterExpected = false))
+                        }
+                    }
+                    bytesReader.expectByte(END_BYTE)
+                    IfInstruction(blockType, thenInstructions, elseInstructions)
                 }
                 else -> throw UnsupportedOperationException("Instruction $instructionType")
             }
@@ -44,26 +74,65 @@ private fun readExpression(bytesReader: BytesReader, delimiterExpected : Boolean
                 InstructionType.I32ADD -> {
                     val left = readExpression(bytesReader, delimiterExpected = false)
                     val right = readExpression(bytesReader, delimiterExpected = false)
-                    return I32AddInstruction(left, right)
+                    I32AddInstruction(left, right)
+                }
+                InstructionType.I32AND -> {
+                    val left = readExpression(bytesReader, delimiterExpected = false)
+                    val right = readExpression(bytesReader, delimiterExpected = false)
+                    I32AndInstruction(left, right)
+                }
+                InstructionType.I32OR -> {
+                    val left = readExpression(bytesReader, delimiterExpected = false)
+                    val right = readExpression(bytesReader, delimiterExpected = false)
+                    I32OrInstruction(left, right)
+                }
+                InstructionType.I32GTS, InstructionType.I32GTU,
+                InstructionType.I32LTS, InstructionType.I32LTU-> {
+                    val left = readExpression(bytesReader, delimiterExpected = false)
+                    val right = readExpression(bytesReader, delimiterExpected = false)
+                    BinaryComparison(instructionType, left, right)
+                }
+                InstructionType.I32EQZ -> {
+                    val value = readExpression(bytesReader, delimiterExpected = false)
+                    I32EqzInstruction(value)
                 }
                 else -> throw UnsupportedOperationException("Instruction $instructionType")
             }
         }
+        InstructionFamily.CONTROL -> {
+            when (instructionType) {
+                InstructionType.RETURN -> ReturnInstruction()
+                InstructionType.CONDJUMP -> {
+                    ConditionalJumpInstruction(bytesReader.readU32())
+                }
+                else -> throw UnsupportedOperationException("Instruction $instructionType")
+            }
+        }
+        InstructionFamily.MEMORY -> {
+            val align = bytesReader.readU32()
+            val offset = bytesReader.readU32()
+            MemoryInstruction(instructionType, MemoryPosition(align, offset))
+        }
         else -> throw UnsupportedOperationException("Instruction $instructionType")
     }
     if (delimiterExpected) {
-        bytesReader.expectByte(0x0B)
+        bytesReader.expectByte(END_BYTE)
     }
     return instruction
 }
 
-fun CodeBlock.interpret() : Instruction {
+fun CodeBlock.interpret() : List<Instruction> {
     val bytesReader = BytesReader(this.bytes)
-    val instruction = readExpression(bytesReader)
-    if (!bytesReader.hasFinished()) {
-        throw IllegalStateException()
+    val instructions = LinkedList<Instruction>()
+    while (bytesReader.peekNextByte() != END_BYTE) {
+        val instruction = readExpression(bytesReader, delimiterExpected = false)
+        instructions.add(instruction)
     }
-    return instruction
+    bytesReader.expectByte(END_BYTE)
+    if (!bytesReader.hasFinished()) {
+        throw IllegalStateException("Expected to finish byte. Remaining: ${bytesReader.remainingBytes()}")
+    }
+    return instructions
 }
 
 class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {

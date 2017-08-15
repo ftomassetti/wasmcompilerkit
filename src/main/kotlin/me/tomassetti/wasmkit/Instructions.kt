@@ -8,7 +8,9 @@ enum class InstructionFamily {
     VAR,
     NUMERIC_CONST,
     BLOCKS,
-    NUMERIC_OP
+    NUMERIC_OP,
+    CONTROL,
+    MEMORY
 }
 
 enum class InstructionType(val opcode: Byte, val family: InstructionFamily = InstructionFamily.UNSPECIFIED) {
@@ -17,10 +19,10 @@ enum class InstructionType(val opcode: Byte, val family: InstructionFamily = Ins
     BLOCK(0x02, InstructionFamily.BLOCKS),
     LOOP(0x03, InstructionFamily.BLOCKS),
     IF(0x04, InstructionFamily.BLOCKS),
-    JUMP(0x0C),
-    CONDJUMP(0x0D),
+    JUMP(0x0C, InstructionFamily.CONTROL),
+    CONDJUMP(0x0D, InstructionFamily.CONTROL),
     TABLEJUMP(0x0E),
-    RETURN(0x0F),
+    RETURN(0x0F, InstructionFamily.CONTROL),
     CALL(0x10),
     INDCALL(0x11),
     DROP(0x1A),
@@ -32,42 +34,42 @@ enum class InstructionType(val opcode: Byte, val family: InstructionFamily = Ins
     GET_GLOBAL(0x23, InstructionFamily.VAR),
     SET_GLOBAL(0x24, InstructionFamily.VAR),
 
-    LOADI32(0x28),
-    LOADI64(0x29),
-    LOADF32(0x2A),
-    LOADF64(0x2B),
-    LOADI32_8S(0x2C),
-    LOADI32_8U(0x2D),
-    LOADI32_16S(0x2E),
-    LOADI32_16U(0x2F),
-    LOADI64_8S(0x30),
-    LOADI64_8U(0x31),
-    LOADI64_16S(0x32),
-    LOADI64_16U(0x33),
-    LOADI64_32S(0x34),
-    LOADI64_32U(0x35),
-    STOREI32(0x36),
-    STOREI64(0x37),
-    STOREF32(0x38),
-    STOREF64(0x39),
-    STOREI32_8(0x3A),
-    STOREI32_16(0x3B),
-    STOREI64_8(0x3C),
-    STOREI64_16(0x3D),
-    STOREI64_32(0x3E),
+    LOADI32(0x28, InstructionFamily.MEMORY),
+    LOADI64(0x29, InstructionFamily.MEMORY),
+    LOADF32(0x2A, InstructionFamily.MEMORY),
+    LOADF64(0x2B, InstructionFamily.MEMORY),
+    LOADI32_8S(0x2C, InstructionFamily.MEMORY),
+    LOADI32_8U(0x2D, InstructionFamily.MEMORY),
+    LOADI32_16S(0x2E, InstructionFamily.MEMORY),
+    LOADI32_16U(0x2F, InstructionFamily.MEMORY),
+    LOADI64_8S(0x30, InstructionFamily.MEMORY),
+    LOADI64_8U(0x31, InstructionFamily.MEMORY),
+    LOADI64_16S(0x32, InstructionFamily.MEMORY),
+    LOADI64_16U(0x33, InstructionFamily.MEMORY),
+    LOADI64_32S(0x34, InstructionFamily.MEMORY),
+    LOADI64_32U(0x35, InstructionFamily.MEMORY),
+    STOREI32(0x36, InstructionFamily.MEMORY),
+    STOREI64(0x37, InstructionFamily.MEMORY),
+    STOREF32(0x38, InstructionFamily.MEMORY),
+    STOREF64(0x39, InstructionFamily.MEMORY),
+    STOREI32_8(0x3A, InstructionFamily.MEMORY),
+    STOREI32_16(0x3B, InstructionFamily.MEMORY),
+    STOREI64_8(0x3C, InstructionFamily.MEMORY),
+    STOREI64_16(0x3D, InstructionFamily.MEMORY),
+    STOREI64_32(0x3E, InstructionFamily.MEMORY),
     CURRMEM(0x3F),
     GROWMEM(0x40),
     I32CONST(0x41, InstructionFamily.NUMERIC_CONST),
     I64CONST(0x42, InstructionFamily.NUMERIC_CONST),
     F32CONST(0x43, InstructionFamily.NUMERIC_CONST),
     F64CONST(0x44, InstructionFamily.NUMERIC_CONST),
-    I32EQZ(0x45),
+    I32EQZ(0x45, InstructionFamily.NUMERIC_OP),
     I32EQ(0x46),
     I32NE(0x47),
-    I32LTS(0x48),
-    I32LTU(0x49),
-    I32GTS(0x4A),
-    I32GTU(0x4B),
+    I32LTS(0x48, InstructionFamily.NUMERIC_OP),
+    I32LTU(0x49, InstructionFamily.NUMERIC_OP),
+    I32GTS(0x4A, InstructionFamily.NUMERIC_OP),
+    I32GTU(0x4B, InstructionFamily.NUMERIC_OP),
     I32LES(0x4C),
     I32LEU(0x4D),
     I32GES(0x4E),
@@ -108,8 +110,8 @@ enum class InstructionType(val opcode: Byte, val family: InstructionFamily = Ins
     I32DIVU(0x6E),
     I32REMS(0x6F),
     I32REMU(0x70),
-    I32AND(0x71),
-    I32OR(0x72),
+    I32AND(0x71, InstructionFamily.NUMERIC_OP),
+    I32OR(0x72, InstructionFamily.NUMERIC_OP),
     I32XOR(0x73),
     I32SHL(0x74),
     I32SHRS(0x75),
@@ -220,6 +222,28 @@ class I32ConstInstruction(type: InstructionType, val value: Long) : Instruction(
 
 class BlockInstruction(val blockType: BlockType, val content: List<Instruction>) : Instruction(InstructionType.BLOCK)
 
+class LoopInstruction(val blockType: BlockType, val content: List<Instruction>) : Instruction(InstructionType.LOOP)
+
+class IfInstruction(val blockType: BlockType, val thenInstructions: List<Instruction>, val ekseInstructions: List<Instruction>? = null) : Instruction(InstructionType.IF)
+
 open class BinaryInstruction(type: InstructionType, val left: Instruction, val right: Instruction) : Instruction(type)
 
+open class TestInstruction(type: InstructionType, val value: Instruction) : Instruction(type)
+
 class I32AddInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32ADD, left, right)
+
+class BinaryComparison(type: InstructionType, left: Instruction, right: Instruction) : BinaryInstruction(type, left, right)
+
+class I32AndInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32ADD, left, right)
+
+class I32OrInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32ADD, left, right)
+
+class I32EqzInstruction(value: Instruction) : TestInstruction(InstructionType.I32EQZ, value)
+
+class ReturnInstruction : Instruction(InstructionType.RETURN)
+
+data class MemoryPosition(val align: Long, val offset: Long)
+
+class MemoryInstruction(type: InstructionType, val memArg: MemoryPosition) : Instruction(type)
+
+class ConditionalJumpInstruction(val labelIndex: Long) : Instruction(InstructionType.CONDJUMP)
