@@ -10,7 +10,9 @@ enum class InstructionFamily {
     BLOCKS,
     NUMERIC_OP,
     CONTROL,
-    MEMORY
+    MEMORY,
+    CALL,
+    CONVERSION_OP
 }
 
 enum class InstructionType(val opcode: Byte, val family: InstructionFamily = InstructionFamily.UNSPECIFIED) {
@@ -23,8 +25,8 @@ enum class InstructionType(val opcode: Byte, val family: InstructionFamily = Ins
     CONDJUMP(0x0D, InstructionFamily.CONTROL),
     TABLEJUMP(0x0E),
     RETURN(0x0F, InstructionFamily.CONTROL),
-    CALL(0x10),
-    INDCALL(0x11),
+    CALL(0x10, InstructionFamily.CALL),
+    INDCALL(0x11, InstructionFamily.CALL),
     DROP(0x1A),
     SELECT(0x1B),
 
@@ -145,10 +147,10 @@ enum class InstructionType(val opcode: Byte, val family: InstructionFamily = Ins
     F32TRUNC(0x8F.toByte()),
     F32NEAREST(0x90.toByte()),
     F32SQRT(0x91.toByte()),
-    F32ADD(0x92.toByte()),
-    F32SUB(0x93.toByte()),
-    F32MUL(0x94.toByte()),
-    F32DIV(0x95.toByte()),
+    F32ADD(0x92.toByte(), InstructionFamily.NUMERIC_OP),
+    F32SUB(0x93.toByte(), InstructionFamily.NUMERIC_OP),
+    F32MUL(0x94.toByte(), InstructionFamily.NUMERIC_OP),
+    F32DIV(0x95.toByte(), InstructionFamily.NUMERIC_OP),
     F32MIN(0x96.toByte()),
     F32MAX(0x97.toByte()),
     F32COPYSIGN(0x98.toByte()),
@@ -160,58 +162,62 @@ enum class InstructionType(val opcode: Byte, val family: InstructionFamily = Ins
     F64TRUNC(0x9D.toByte()),
     F64NEAREST(0x9E.toByte()),
     F64SQRT(0x9F.toByte()),
-    F64ADD(0xA0.toByte()),
-    F64SUB(0xA1.toByte()),
-    F64MUL(0xA2.toByte()),
-    F64DIV(0xA3.toByte()),
+    F64ADD(0xA0.toByte(), InstructionFamily.NUMERIC_OP),
+    F64SUB(0xA1.toByte(), InstructionFamily.NUMERIC_OP),
+    F64MUL(0xA2.toByte(), InstructionFamily.NUMERIC_OP),
+    F64DIV(0xA3.toByte(), InstructionFamily.NUMERIC_OP),
     F64MIN(0xA4.toByte()),
     F64MAX(0xA5.toByte()),
     F64COPYSIGN(0xA6.toByte()),
 
-    I32WRAPI64(0xA7.toByte()),
-    I32TRUNCSF32(0xA8.toByte()),
-    I32TRUNCUF32(0xA9.toByte()),
-    I32TRUNCSF64(0xAA.toByte()),
-    I32TRUNCUF64(0xAB.toByte()),
-    I64EXTENDSI32(0xAC.toByte()),
-    I64EXTENDUI32(0xAD.toByte()),
-    I64TRUNCSF32(0xAE.toByte()),
-    I64TRUNCSU32(0xAF.toByte()),
-    I64TRUNCSF64(0xB0.toByte()),
-    I64TRUNCSU64(0xB1.toByte()),
+    I32WRAPI64(0xA7.toByte(), InstructionFamily.CONVERSION_OP),
+    I32TRUNCSF32(0xA8.toByte(), InstructionFamily.CONVERSION_OP),
+    I32TRUNCUF32(0xA9.toByte(), InstructionFamily.CONVERSION_OP),
+    I32TRUNCSF64(0xAA.toByte(), InstructionFamily.CONVERSION_OP),
+    I32TRUNCUF64(0xAB.toByte(), InstructionFamily.CONVERSION_OP),
+    I64EXTENDSI32(0xAC.toByte(), InstructionFamily.CONVERSION_OP),
+    I64EXTENDUI32(0xAD.toByte(), InstructionFamily.CONVERSION_OP),
+    I64TRUNCSF32(0xAE.toByte(), InstructionFamily.CONVERSION_OP),
+    I64TRUNCSU32(0xAF.toByte(), InstructionFamily.CONVERSION_OP),
+    I64TRUNCSF64(0xB0.toByte(), InstructionFamily.CONVERSION_OP),
+    I64TRUNCSU64(0xB1.toByte(), InstructionFamily.CONVERSION_OP),
 
-    F32CONVERTSI32(0xB2.toByte()),
-    F32CONVERTUI32(0xB3.toByte()),
-    F32CONVERTSI64(0xB5.toByte()),
-    F32CONVERTUI64(0xB6.toByte()),
-    F32DEMOTEF64(0xB6.toByte()),
+    F32CONVERTSI32(0xB2.toByte(), InstructionFamily.CONVERSION_OP),
+    F32CONVERTUI32(0xB3.toByte(), InstructionFamily.CONVERSION_OP),
+    F32CONVERTSI64(0xB5.toByte(), InstructionFamily.CONVERSION_OP),
+    F32CONVERTUI64(0xB6.toByte(), InstructionFamily.CONVERSION_OP),
+    F32DEMOTEF64(0xB6.toByte(), InstructionFamily.CONVERSION_OP),
 
-    F64CONVERTSI32(0xB7.toByte()),
-    F64CONVERTUI32(0xB8.toByte()),
-    F64CONVERTSI64(0xB9.toByte()),
-    F64CONVERTUI64(0xBA.toByte()),
-    F64PROMOTEF32(0xBB.toByte()),
+    F64CONVERTSI32(0xB7.toByte(), InstructionFamily.CONVERSION_OP),
+    F64CONVERTUI32(0xB8.toByte(), InstructionFamily.CONVERSION_OP),
+    F64CONVERTSI64(0xB9.toByte(), InstructionFamily.CONVERSION_OP),
+    F64CONVERTUI64(0xBA.toByte(), InstructionFamily.CONVERSION_OP),
+    F64PROMOTEF32(0xBB.toByte(), InstructionFamily.CONVERSION_OP),
 
-    I32REINTERPRETF32(0xBC.toByte()),
-    I64REINTERPRETF64(0xBD.toByte()),
-    F32REINTERPRETI32(0xBE.toByte()),
-    F64REINTERPRETI64(0xBF.toByte());
+    I32REINTERPRETF32(0xBC.toByte(), InstructionFamily.CONVERSION_OP),
+    I64REINTERPRETF64(0xBD.toByte(), InstructionFamily.CONVERSION_OP),
+    F32REINTERPRETI32(0xBE.toByte(), InstructionFamily.CONVERSION_OP),
+    F64REINTERPRETI64(0xBF.toByte(), InstructionFamily.CONVERSION_OP);
 
     companion object {
-        fun fromOpcode(opCode: Byte) = values().first { it.opcode == opCode }
+        fun fromOpcode(opCode: Byte) = try {
+            values().first { it.opcode == opCode }
+        } catch (e: NoSuchElementException) {
+            throw RuntimeException("Unknown OpCode $opCode")
+        }
     }
 }
 
-sealed class Instruction(val type: InstructionType) {
+sealed class Instruction(open val type: InstructionType) {
     open fun sizeInBytes(): Long = TODO("Instruction of type $type")
 }
 
-class VarInstruction(type: InstructionType, val index: Long) : Instruction(type) {
+data class VarInstruction(override val type: InstructionType, val index: Long) : Instruction(type) {
     override fun sizeInBytes(): Long = 1 + sizeInBytesOfU32(index)
 
 }
 
-class I32ConstInstruction(type: InstructionType, val value: Long) : Instruction(type) {
+data class I32ConstInstruction(override val type: InstructionType, val value: Long) : Instruction(type) {
     override fun sizeInBytes(): Long {
         return when (type) {
             InstructionType.I32CONST -> 1 + sizeInBytesOfU32(value)
@@ -220,30 +226,56 @@ class I32ConstInstruction(type: InstructionType, val value: Long) : Instruction(
     }
 }
 
+data class F64ConstInstruction(val value: Double) : Instruction(InstructionType.F64CONST)
+
 class BlockInstruction(val blockType: BlockType, val content: List<Instruction>) : Instruction(InstructionType.BLOCK)
 
 class LoopInstruction(val blockType: BlockType, val content: List<Instruction>) : Instruction(InstructionType.LOOP)
 
-class IfInstruction(val blockType: BlockType, val thenInstructions: List<Instruction>, val ekseInstructions: List<Instruction>? = null) : Instruction(InstructionType.IF)
+data class IfInstruction(val blockType: BlockType, val thenInstructions: List<Instruction>, val elseInstructions: List<Instruction>? = null) : Instruction(InstructionType.IF)
 
 open class BinaryInstruction(type: InstructionType, val left: Instruction, val right: Instruction) : Instruction(type)
 
 open class TestInstruction(type: InstructionType, val value: Instruction) : Instruction(type)
 
 class I32AddInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32ADD, left, right)
+class I32SubInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32SUB, left, right)
+class I32MulInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32MUL, left, right)
+class I32DivSInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32DIVS, left, right)
+class I32DivUInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32DIVU, left, right)
+
+class F32AddInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F32ADD, left, right)
+class F32SubInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F32SUB, left, right)
+class F32MulInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F32MUL, left, right)
+class F32DivInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F32DIV, left, right)
+
+class F64AddInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F64ADD, left, right)
+class F64SubInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F64SUB, left, right)
+class F64MulInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F64MUL, left, right)
+class F64DivInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F64DIV, left, right)
 
 class BinaryComparison(type: InstructionType, left: Instruction, right: Instruction) : BinaryInstruction(type, left, right)
 
-class I32AndInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32ADD, left, right)
+class I32AndInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32AND, left, right)
 
-class I32OrInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32ADD, left, right)
+class F64PromoteF32Instruction(val value: Instruction) : Instruction(InstructionType.F64PROMOTEF32)
+
+class F32ConvertUI64Instruction(val value: Instruction) : Instruction(InstructionType.F64PROMOTEF32)
+
+class I32OrInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32OR, left, right)
 
 class I32EqzInstruction(value: Instruction) : TestInstruction(InstructionType.I32EQZ, value)
 
-class ReturnInstruction : Instruction(InstructionType.RETURN)
+object returnInstruction : Instruction(InstructionType.RETURN) {
+    override fun toString() = "returnInstruction"
+}
 
 data class MemoryPosition(val align: Long, val offset: Long)
 
 class MemoryInstruction(type: InstructionType, val memArg: MemoryPosition) : Instruction(type)
 
+class JumpInstruction(val labelIndex: Long) : Instruction(InstructionType.CONDJUMP)
 class ConditionalJumpInstruction(val labelIndex: Long) : Instruction(InstructionType.CONDJUMP)
+
+class CallInstruction(val funcIndex: FuncIndex) : Instruction(InstructionType.CALL)
+class IndirectCallInstruction(val typeIndex: TypeIndex) : Instruction(InstructionType.INDCALL)

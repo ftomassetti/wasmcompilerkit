@@ -1,13 +1,24 @@
 package me.tomassetti.wasmkit.serialization
 
+import java.nio.ByteBuffer
 import kotlin.experimental.and
 
 class BytesReader(val bytes: ByteArray) {
     private var currentIndex = 0
 
-    fun readNextByte() = bytes[currentIndex++]
+    fun readNextByte() : Byte {
+        if (hasFinished()) {
+            throw IllegalStateException("No more bytes to read")
+        }
+        return bytes[currentIndex++]
+    }
 
-    fun peekNextByte() = bytes[currentIndex]
+    fun peekNextByte() : Byte {
+        if (hasFinished()) {
+            throw IllegalStateException("No more bytes to read")
+        }
+        return bytes[currentIndex]
+    }
 
     fun hasFinished() = remainingBytes() == 0
 
@@ -16,6 +27,12 @@ class BytesReader(val bytes: ByteArray) {
     fun readU32() : Long {
         val byte = readNextByte()
         return byte.and(0x7F).toLong() + if (byte.and(0x80.toByte()) != 0.toByte()) 128 * readU32() else 0
+    }
+
+    fun readDouble() : Double {
+        val bytes = bytes.copyOfRange(currentIndex, currentIndex + 8)
+        currentIndex += 8
+        return ByteBuffer.wrap(bytes).double
     }
 
     fun readBytes(n: Long) : ByteArray = 1L.rangeTo(n).map { readNextByte() }.toByteArray()
