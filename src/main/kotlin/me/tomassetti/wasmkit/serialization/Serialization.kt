@@ -114,8 +114,7 @@ val NON_PARAMETRIC_INSTRUCTIONS = mapOf(
         I32REINTERPRETF32 to I32ReinterpretF32Instruction,
         I64REINTERPRETF64 to I64ReinterpretF64Instruction,
         F32REINTERPRETI32 to F32ReinterpretI32Instruction,
-        F64REINTERPRETI64 to F64ReinterpretI64Instruction
-)
+        F64REINTERPRETI64 to F64ReinterpretI64Instruction)
 
 val TYPE_PARAMETRIC_INSTRUCTIONS = mapOf<InstructionType, KClass<out Instruction>>(
         I32EQ to BinaryComparison::class,

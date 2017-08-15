@@ -181,6 +181,12 @@ fun Instruction.toBytes() : ByteArray {
 
 private fun Instruction.storeData(abw: AdvancedBytesWriter) {
     abw.writeByte(this.type.opcode)
+    if (this.type in NON_PARAMETRIC_INSTRUCTIONS) {
+        return
+    }
+    if (this.type in TYPE_PARAMETRIC_INSTRUCTIONS) {
+        return
+    }
     when (this) {
         is VarInstruction -> abw.writeU32(this.index)
         is I32ConstInstruction -> abw.writeS32(this.value)
@@ -210,8 +216,6 @@ private fun Instruction.storeData(abw: AdvancedBytesWriter) {
             }
             abw.writeByte(END_BYTE)
         }
-        is BinaryInstruction, is TestInstruction, is returnInstruction, is UnaryInstruction, is ConversionInstruction,
-        is select, is drop, is nop, is unreachable -> null
         is GrowMem, is CurrMem -> {
             abw.writeByte(0)
         }
