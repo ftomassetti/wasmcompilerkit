@@ -7,7 +7,6 @@ import me.tomassetti.wasmkit.serialization.readExpression
 import java.io.InputStream
 import org.junit.Test as test
 import org.junit.Assert.*
-import java.io.ByteArrayInputStream
 
 class ReadingWasmFile {
 
@@ -23,9 +22,8 @@ class ReadingWasmFile {
     @test
     fun readingBlock() {
         val i = interpretInstruction(byteArrayOf(4, 64, 65, 0, 33, 2, 5, 15, 11))
-        println(i)
         assertEquals(IfInstruction(emptyBlockType,
-                listOf(I32ConstInstruction(InstructionType.I32CONST, 0), VarInstruction(InstructionType.SET_LOCAL, 2)),
+                listOf(I32ConstInstruction(0), VarInstruction(InstructionType.SET_LOCAL, 2)),
                 listOf(returnInstruction)
                 ), i)
     }

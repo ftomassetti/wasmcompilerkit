@@ -60,12 +60,14 @@ enum class InstructionType(val opcode: Byte, val family: InstructionFamily = Ins
     STOREI64_8(0x3C, InstructionFamily.MEMORY),
     STOREI64_16(0x3D, InstructionFamily.MEMORY),
     STOREI64_32(0x3E, InstructionFamily.MEMORY),
-    CURRMEM(0x3F),
-    GROWMEM(0x40),
+    CURRMEM(0x3F, InstructionFamily.MEMORY),
+    GROWMEM(0x40, InstructionFamily.MEMORY),
+
     I32CONST(0x41, InstructionFamily.NUMERIC_CONST),
     I64CONST(0x42, InstructionFamily.NUMERIC_CONST),
     F32CONST(0x43, InstructionFamily.NUMERIC_CONST),
     F64CONST(0x44, InstructionFamily.NUMERIC_CONST),
+
     I32EQZ(0x45, InstructionFamily.COMPARISON_OP),
     I32EQ(0x46, InstructionFamily.COMPARISON_OP),
     I32NE(0x47, InstructionFamily.COMPARISON_OP),
@@ -107,68 +109,68 @@ enum class InstructionType(val opcode: Byte, val family: InstructionFamily = Ins
     I32CTX(0x68),
     I32POPCNT(0x69),
     I32ADD(0x6A, InstructionFamily.NUMERIC_OP),
-    I32SUB(0x6B),
-    I32MUL(0x6C),
-    I32DIVS(0x6D),
-    I32DIVU(0x6E),
-    I32REMS(0x6F),
-    I32REMU(0x70),
+    I32SUB(0x6B, InstructionFamily.NUMERIC_OP),
+    I32MUL(0x6C, InstructionFamily.NUMERIC_OP),
+    I32DIVS(0x6D, InstructionFamily.NUMERIC_OP),
+    I32DIVU(0x6E, InstructionFamily.NUMERIC_OP),
+    I32REMS(0x6F, InstructionFamily.NUMERIC_OP),
+    I32REMU(0x70, InstructionFamily.NUMERIC_OP),
     I32AND(0x71, InstructionFamily.NUMERIC_OP),
     I32OR(0x72, InstructionFamily.NUMERIC_OP),
-    I32XOR(0x73),
-    I32SHL(0x74),
-    I32SHRS(0x75),
-    I32SHRU(0x76),
-    I32ROTL(0x77),
-    I32ROTR(0x78),
+    I32XOR(0x73, InstructionFamily.NUMERIC_OP),
+    I32SHL(0x74, InstructionFamily.NUMERIC_OP),
+    I32SHRS(0x75, InstructionFamily.NUMERIC_OP),
+    I32SHRU(0x76, InstructionFamily.NUMERIC_OP),
+    I32ROTL(0x77, InstructionFamily.NUMERIC_OP),
+    I32ROTR(0x78, InstructionFamily.NUMERIC_OP),
 
     I64CLZ(0x79),
     I64CTX(0x7A),
     I64POPCNT(0x7B),
-    I64ADD(0x7C),
-    I64SUB(0x7D),
-    I64MUL(0x7E),
-    I64DIVS(0x7F),
-    I64DIVU(0x80.toByte()),
-    I64REMS(0x81.toByte()),
-    I64REMU(0x82.toByte()),
-    I64AND(0x83.toByte()),
-    I64OR(0x84.toByte()),
-    I64XOR(0x85.toByte()),
-    I64SHL(0x86.toByte()),
-    I64SHRS(0x87.toByte()),
-    I64SHRU(0x88.toByte()),
-    I64ROTL(0x89.toByte()),
-    I64ROTR(0x8A.toByte()),
+    I64ADD(0x7C, InstructionFamily.NUMERIC_OP),
+    I64SUB(0x7D, InstructionFamily.NUMERIC_OP),
+    I64MUL(0x7E, InstructionFamily.NUMERIC_OP),
+    I64DIVS(0x7F, InstructionFamily.NUMERIC_OP),
+    I64DIVU(0x80.toByte(), InstructionFamily.NUMERIC_OP),
+    I64REMS(0x81.toByte(), InstructionFamily.NUMERIC_OP),
+    I64REMU(0x82.toByte(), InstructionFamily.NUMERIC_OP),
+    I64AND(0x83.toByte(), InstructionFamily.NUMERIC_OP),
+    I64OR(0x84.toByte(), InstructionFamily.NUMERIC_OP),
+    I64XOR(0x85.toByte(), InstructionFamily.NUMERIC_OP),
+    I64SHL(0x86.toByte(), InstructionFamily.NUMERIC_OP),
+    I64SHRS(0x87.toByte(), InstructionFamily.NUMERIC_OP),
+    I64SHRU(0x88.toByte(), InstructionFamily.NUMERIC_OP),
+    I64ROTL(0x89.toByte(), InstructionFamily.NUMERIC_OP),
+    I64ROTR(0x8A.toByte(), InstructionFamily.NUMERIC_OP),
 
-    F32ABS(0x8B.toByte()),
-    F32NEG(0x8C.toByte()),
-    F32CEIL(0x8D.toByte()),
-    F32FLOOR(0x8E.toByte()),
-    F32TRUNC(0x8F.toByte()),
-    F32NEAREST(0x90.toByte()),
+    F32ABS(0x8B.toByte(), InstructionFamily.NUMERIC_OP),
+    F32NEG(0x8C.toByte(), InstructionFamily.NUMERIC_OP),
+    F32CEIL(0x8D.toByte(), InstructionFamily.NUMERIC_OP),
+    F32FLOOR(0x8E.toByte(), InstructionFamily.NUMERIC_OP),
+    F32TRUNC(0x8F.toByte(), InstructionFamily.NUMERIC_OP),
+    F32NEAREST(0x90.toByte(), InstructionFamily.NUMERIC_OP),
     F32SQRT(0x91.toByte(), InstructionFamily.NUMERIC_OP),
     F32ADD(0x92.toByte(), InstructionFamily.NUMERIC_OP),
     F32SUB(0x93.toByte(), InstructionFamily.NUMERIC_OP),
     F32MUL(0x94.toByte(), InstructionFamily.NUMERIC_OP),
     F32DIV(0x95.toByte(), InstructionFamily.NUMERIC_OP),
-    F32MIN(0x96.toByte()),
-    F32MAX(0x97.toByte()),
+    F32MIN(0x96.toByte(), InstructionFamily.NUMERIC_OP),
+    F32MAX(0x97.toByte(), InstructionFamily.NUMERIC_OP),
     F32COPYSIGN(0x98.toByte()),
 
-    F64ABS(0x99.toByte()),
-    F64NEG(0x9A.toByte()),
-    F64CEIL(0x9B.toByte()),
-    F64FLOOR(0x9C.toByte()),
-    F64TRUNC(0x9D.toByte()),
-    F64NEAREST(0x9E.toByte()),
+    F64ABS(0x99.toByte(), InstructionFamily.NUMERIC_OP),
+    F64NEG(0x9A.toByte(), InstructionFamily.NUMERIC_OP),
+    F64CEIL(0x9B.toByte(), InstructionFamily.NUMERIC_OP),
+    F64FLOOR(0x9C.toByte(), InstructionFamily.NUMERIC_OP),
+    F64TRUNC(0x9D.toByte(), InstructionFamily.NUMERIC_OP),
+    F64NEAREST(0x9E.toByte(), InstructionFamily.NUMERIC_OP),
     F64SQRT(0x9F.toByte(), InstructionFamily.NUMERIC_OP),
     F64ADD(0xA0.toByte(), InstructionFamily.NUMERIC_OP),
     F64SUB(0xA1.toByte(), InstructionFamily.NUMERIC_OP),
     F64MUL(0xA2.toByte(), InstructionFamily.NUMERIC_OP),
     F64DIV(0xA3.toByte(), InstructionFamily.NUMERIC_OP),
-    F64MIN(0xA4.toByte()),
-    F64MAX(0xA5.toByte()),
+    F64MIN(0xA4.toByte(), InstructionFamily.NUMERIC_OP),
+    F64MAX(0xA5.toByte(), InstructionFamily.NUMERIC_OP),
     F64COPYSIGN(0xA6.toByte()),
 
     I32WRAPI64(0xA7.toByte(), InstructionFamily.CONVERSION_OP),
@@ -218,14 +220,11 @@ data class VarInstruction(override val type: InstructionType, val index: Long) :
 
 }
 
-data class I32ConstInstruction(override val type: InstructionType, val value: Long) : Instruction(type) {
-    override fun sizeInBytes(): Long {
-        return when (type) {
-            InstructionType.I32CONST -> 1 + sizeInBytesOfU32(value)
-            else -> TODO("Instruction of type $type")
-        }
-    }
+data class I32ConstInstruction(val value: Long) : Instruction(InstructionType.I32CONST) {
+    override fun sizeInBytes(): Long = 1 + sizeInBytesOfU32(value)
 }
+
+data class I64ConstInstruction(val value: Long) : Instruction(InstructionType.I64CONST)
 
 data class F32ConstInstruction(val value: Float) : Instruction(InstructionType.F32CONST)
 data class F64ConstInstruction(val value: Double) : Instruction(InstructionType.F64CONST)
@@ -236,83 +235,102 @@ class LoopInstruction(val blockType: BlockType, val content: List<Instruction>) 
 
 data class IfInstruction(val blockType: BlockType, val thenInstructions: List<Instruction>, val elseInstructions: List<Instruction>? = null) : Instruction(InstructionType.IF)
 
-open class BinaryInstruction(type: InstructionType, val left: Instruction, val right: Instruction) : Instruction(type)
+open class BinaryInstruction(type: InstructionType) : Instruction(type)
 
-open class TestInstruction(type: InstructionType, val value: Instruction) : Instruction(type)
+open class TestInstruction(type: InstructionType) : Instruction(type)
 
 //
 // Basic arithmetic instructions
 //
 
-class I32AddInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32ADD, left, right)
-class I32SubInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32SUB, left, right)
-class I32MulInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32MUL, left, right)
-class I32DivSInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32DIVS, left, right)
-class I32DivUInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32DIVU, left, right)
+object I32AddInstruction : BinaryInstruction(InstructionType.I32ADD)
+object I32SubInstruction : BinaryInstruction(InstructionType.I32SUB)
+object I32MulInstruction : BinaryInstruction(InstructionType.I32MUL)
+object I32DivSInstruction : BinaryInstruction(InstructionType.I32DIVS)
+object I32DivUInstruction : BinaryInstruction(InstructionType.I32DIVU)
+object I32RemSInstruction : BinaryInstruction(InstructionType.I32REMS)
+object I32RemUInstruction : BinaryInstruction(InstructionType.I32REMU)
 
-class F32AddInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F32ADD, left, right)
-class F32SubInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F32SUB, left, right)
-class F32MulInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F32MUL, left, right)
-class F32DivInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F32DIV, left, right)
+object I64AddInstruction : BinaryInstruction(InstructionType.I64ADD)
+object I64SubInstruction : BinaryInstruction(InstructionType.I64SUB)
+object I64MulInstruction : BinaryInstruction(InstructionType.I64MUL)
+object I64DivSInstruction : BinaryInstruction(InstructionType.I64DIVS)
+object I64DivUInstruction : BinaryInstruction(InstructionType.I64DIVU)
+object I64RemSInstruction : BinaryInstruction(InstructionType.I64REMS)
+object I64RemUInstruction : BinaryInstruction(InstructionType.I64REMU)
 
-class F64AddInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F64ADD, left, right)
-class F64SubInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F64SUB, left, right)
-class F64MulInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F64MUL, left, right)
-class F64DivInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F64DIV, left, right)
+object F32AddInstruction : BinaryInstruction(InstructionType.F32ADD)
+object F32SubInstruction : BinaryInstruction(InstructionType.F32SUB)
+object F32MulInstruction : BinaryInstruction(InstructionType.F32MUL)
+object F32DivInstruction : BinaryInstruction(InstructionType.F32DIV)
+object F32NegInstruction : BinaryInstruction(InstructionType.F32NEG)
+
+object F64AddInstruction : BinaryInstruction(InstructionType.F64ADD)
+object F64SubInstruction : BinaryInstruction(InstructionType.F64SUB)
+object F64MulInstruction : BinaryInstruction(InstructionType.F64MUL)
+object F64DivInstruction : BinaryInstruction(InstructionType.F64DIV)
+object F64NegInstruction : BinaryInstruction(InstructionType.F64NEG)
 
 //
 // UnaryInstruction
 //
 
-open class UnaryInstruction(type: InstructionType, val operand: Instruction) : Instruction(type)
+open class UnaryInstruction(type: InstructionType) : Instruction(type)
 
-class F32SqrtInstruction(operand: Instruction) : UnaryInstruction(InstructionType.F32SQRT, operand)
-class F64SqrtInstruction(operand: Instruction) : UnaryInstruction(InstructionType.F64SQRT, operand)
+object F32SqrtInstruction : UnaryInstruction(InstructionType.F32SQRT)
+object F64SqrtInstruction : UnaryInstruction(InstructionType.F64SQRT)
+object F32CeilInstruction : UnaryInstruction(InstructionType.F32CEIL)
+object F64CeilInstruction : UnaryInstruction(InstructionType.F64CEIL)
+object F32FloorInstruction : UnaryInstruction(InstructionType.F32FLOOR)
+object F64FloorInstruction : UnaryInstruction(InstructionType.F64FLOOR)
+
+object I32ShlInstruction : UnaryInstruction(InstructionType.I32SHL)
+object I32ShruInstruction : UnaryInstruction(InstructionType.I32SHRU)
+object I32ShrsInstruction : UnaryInstruction(InstructionType.I32SHRS)
+object I32RotlInstruction : UnaryInstruction(InstructionType.I32ROTL)
+object I32RotrInstruction : UnaryInstruction(InstructionType.I32ROTR)
+
+object I64ShlInstruction : UnaryInstruction(InstructionType.I64SHL)
+object I64ShruInstruction : UnaryInstruction(InstructionType.I64SHRU)
+object I64ShrsInstruction : UnaryInstruction(InstructionType.I64SHRS)
+object I64RotlInstruction : UnaryInstruction(InstructionType.I64ROTL)
+object I64RotrInstruction : UnaryInstruction(InstructionType.I64ROTR)
 
 //
 // Comparison instructions
 //
 
-/*class I32LesInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32LES, left, right)
-class I32LtsInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32LTS, left, right)
-class I32GesInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32GES, left, right)
-class I32GtsInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32GTS, left, right)
-class I32LeuInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32LEU, left, right)
-class I32LtuInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32LTU, left, right)
-class I32GeuInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32GEU, left, right)
-class I32GtuInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32GTU, left, right)
 
-class I64LesInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I64LES, left, right)
-class I64LtsInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I64LTS, left, right)
-class I64GesInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I64GES, left, right)
-class I64GtsInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I64GTS, left, right)
-class I64LeuInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I64LEU, left, right)
-class I64LtuInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I64LTU, left, right)
-class I64GeuInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I64GEU, left, right)
-class I64GtuInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I64GTU, left, right)
+object I32EqzInstruction : TestInstruction(InstructionType.I32EQZ)
 
-class F32LeInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F32LE, left, right)
-class F32LtInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F32LT, left, right)
-class F32GeInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F32GE, left, right)
-class F32GtInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F32GT, left, right)
+class BinaryComparison(type: InstructionType) : BinaryInstruction(type)
 
-class F64LeInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F64LE, left, right)
-class F64LtInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F64LT, left, right)
-class F64GeInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F64GE, left, right)
-class F64GtInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F64GT, left, right)*/
+object I32AndInstruction : BinaryInstruction(InstructionType.I32AND)
+object I32OrInstruction : BinaryInstruction(InstructionType.I32OR)
+object I32XorInstruction : BinaryInstruction(InstructionType.I32XOR)
 
-class I32EqzInstruction(value: Instruction) : TestInstruction(InstructionType.I32EQZ, value)
+object I64AndInstruction : BinaryInstruction(InstructionType.I64AND)
+object I64OrInstruction : BinaryInstruction(InstructionType.I64OR)
+object I64XorInstruction : BinaryInstruction(InstructionType.I64XOR)
 
+object F64PromoteF32Instruction : Instruction(InstructionType.F64PROMOTEF32)
 
-class BinaryComparison(type: InstructionType, left: Instruction, right: Instruction) : BinaryInstruction(type, left, right)
+object F32ConvertUI32Instruction : Instruction(InstructionType.F32CONVERTUI32)
+object F32ConvertUI64Instruction : Instruction(InstructionType.F32CONVERTUI64)
+object F32ConvertSI32Instruction : Instruction(InstructionType.F32CONVERTSI32)
+object F32ConvertSI64Instruction : Instruction(InstructionType.F32CONVERTSI64)
 
-class I32AndInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32AND, left, right)
+object F64ConvertUI32Instruction : Instruction(InstructionType.F64CONVERTUI32)
+object F64ConvertUI64Instruction : Instruction(InstructionType.F64CONVERTUI64)
+object F64ConvertSI32Instruction : Instruction(InstructionType.F64CONVERTSI32)
+object F64ConvertSI64Instruction : Instruction(InstructionType.F64CONVERTSI64)
 
-class F64PromoteF32Instruction(val value: Instruction) : Instruction(InstructionType.F64PROMOTEF32)
+object I32TruncSF32Instruction : Instruction(InstructionType.I32TRUNCSF32)
+object I32TruncSF64Instruction : Instruction(InstructionType.I32TRUNCSF64)
+object I32TruncUF32Instruction : Instruction(InstructionType.I32TRUNCUF32)
+object I32TruncUF64Instruction : Instruction(InstructionType.I32TRUNCUF64)
 
-class F32ConvertUI64Instruction(val value: Instruction) : Instruction(InstructionType.F64PROMOTEF32)
-
-class I32OrInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32OR, left, right)
+object I32WrapI64Instruction : Instruction(InstructionType.I32WRAPI64)
 
 object returnInstruction : Instruction(InstructionType.RETURN) {
     override fun toString() = "returnInstruction"
@@ -322,8 +340,16 @@ data class MemoryPosition(val align: Long, val offset: Long)
 
 class MemoryInstruction(type: InstructionType, val memArg: MemoryPosition) : Instruction(type)
 
+object GrowMem : Instruction(InstructionType.GROWMEM)
+object CurrMem : Instruction(InstructionType.CURRMEM)
+
 class JumpInstruction(val labelIndex: Long) : Instruction(InstructionType.CONDJUMP)
 class ConditionalJumpInstruction(val labelIndex: Long) : Instruction(InstructionType.CONDJUMP)
 
 class CallInstruction(val funcIndex: FuncIndex) : Instruction(InstructionType.CALL)
 class IndirectCallInstruction(val typeIndex: TypeIndex) : Instruction(InstructionType.INDCALL)
+
+object nop : Instruction(InstructionType.NOP)
+object unreachable : Instruction(InstructionType.UNREACHABLE)
+object drop : Instruction(InstructionType.DROP)
+object select : Instruction(InstructionType.SELECT)
