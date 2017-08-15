@@ -28,6 +28,7 @@ fun readExpression(bytesReader: BytesReader, delimiterExpected : Boolean = true)
         InstructionFamily.NUMERIC_CONST -> {
             when (instructionType) {
                 InstructionType.I32CONST -> I32ConstInstruction(instructionType, bytesReader.readU32())
+                InstructionType.F32CONST -> F32ConstInstruction(bytesReader.readFloat())
                 InstructionType.F64CONST -> F64ConstInstruction(bytesReader.readDouble())
                 else -> throw UnsupportedOperationException("Instruction $instructionType")
             }
@@ -55,7 +56,7 @@ fun readExpression(bytesReader: BytesReader, delimiterExpected : Boolean = true)
                 InstructionType.IF -> {
                     val blockType = readBlockType(bytesReader)
                     val thenInstructions = LinkedList<Instruction>()
-                    var elseInstructions : MutableList<Instruction>? = null
+                    var elseInstructions: MutableList<Instruction>? = null
                     while (bytesReader.peekNextByte() != ELSE_BYTE && bytesReader.peekNextByte() != END_BYTE) {
                         thenInstructions.add(readExpression(bytesReader, delimiterExpected = false))
                     }
@@ -68,6 +69,35 @@ fun readExpression(bytesReader: BytesReader, delimiterExpected : Boolean = true)
                     }
                     bytesReader.expectByte(END_BYTE)
                     IfInstruction(blockType, thenInstructions, elseInstructions)
+                }
+                else -> throw UnsupportedOperationException("Instruction $instructionType")
+            }
+        }
+        InstructionFamily.COMPARISON_OP -> {
+            when (instructionType) {
+                InstructionType.I32GTS, InstructionType.I32GTU,
+                InstructionType.I32LTS, InstructionType.I32LTU,
+                InstructionType.I32GES, InstructionType.I32GEU,
+                InstructionType.I32LES, InstructionType.I32LEU,
+                InstructionType.I64GTS, InstructionType.I64GTU,
+                InstructionType.I64LTS, InstructionType.I64LTU,
+                InstructionType.I64GES, InstructionType.I64GEU,
+                InstructionType.I64LES, InstructionType.I64LEU,
+                InstructionType.F32GT, InstructionType.F32GE,
+                InstructionType.F32LT, InstructionType.F32LE,
+                InstructionType.F64GT, InstructionType.F64GE,
+                InstructionType.F64LT, InstructionType.F64LE,
+                InstructionType.I32NE, InstructionType.I64NE,
+                InstructionType.F32NE, InstructionType.F64NE,
+                InstructionType.I32EQ, InstructionType.I64EQ,
+                InstructionType.F32EQ, InstructionType.F64EQ-> {
+                    val left = readExpression(bytesReader, delimiterExpected = false)
+                    val right = readExpression(bytesReader, delimiterExpected = false)
+                    BinaryComparison(instructionType, left, right)
+                }
+                InstructionType.I32EQZ -> {
+                    val value = readExpression(bytesReader, delimiterExpected = false)
+                    I32EqzInstruction(value)
                 }
                 else -> throw UnsupportedOperationException("Instruction $instructionType")
             }
@@ -111,16 +141,6 @@ fun readExpression(bytesReader: BytesReader, delimiterExpected : Boolean = true)
                     val right = readExpression(bytesReader, delimiterExpected = false)
                     I32OrInstruction(left, right)
                 }
-                InstructionType.I32GTS, InstructionType.I32GTU,
-                InstructionType.I32LTS, InstructionType.I32LTU-> {
-                    val left = readExpression(bytesReader, delimiterExpected = false)
-                    val right = readExpression(bytesReader, delimiterExpected = false)
-                    BinaryComparison(instructionType, left, right)
-                }
-                InstructionType.I32EQZ -> {
-                    val value = readExpression(bytesReader, delimiterExpected = false)
-                    I32EqzInstruction(value)
-                }
 
                 InstructionType.F32ADD -> {
                     val left = readExpression(bytesReader, delimiterExpected = false)
@@ -163,6 +183,9 @@ fun readExpression(bytesReader: BytesReader, delimiterExpected : Boolean = true)
                     val right = readExpression(bytesReader, delimiterExpected = false)
                     F64DivInstruction(left, right)
                 }
+
+                InstructionType.F32SQRT -> F32SqrtInstruction(readExpression(bytesReader, delimiterExpected = false))
+                InstructionType.F64SQRT -> F64SqrtInstruction(readExpression(bytesReader, delimiterExpected = false))
 
                 else -> throw UnsupportedOperationException("Instruction $instructionType")
             }

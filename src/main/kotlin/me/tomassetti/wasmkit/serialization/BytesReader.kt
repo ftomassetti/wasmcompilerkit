@@ -35,6 +35,12 @@ class BytesReader(val bytes: ByteArray) {
         return ByteBuffer.wrap(bytes).double
     }
 
+    fun readFloat() : Float {
+        val bytes = bytes.copyOfRange(currentIndex, currentIndex + 4)
+        currentIndex += 4
+        return ByteBuffer.wrap(bytes).float
+    }
+
     fun readBytes(n: Long) : ByteArray = 1L.rangeTo(n).map { readNextByte() }.toByteArray()
 
     fun currentIndex() = currentIndex

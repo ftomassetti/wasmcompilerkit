@@ -12,7 +12,8 @@ enum class InstructionFamily {
     CONTROL,
     MEMORY,
     CALL,
-    CONVERSION_OP
+    CONVERSION_OP,
+    COMPARISON_OP
 }
 
 enum class InstructionType(val opcode: Byte, val family: InstructionFamily = InstructionFamily.UNSPECIFIED) {
@@ -65,42 +66,42 @@ enum class InstructionType(val opcode: Byte, val family: InstructionFamily = Ins
     I64CONST(0x42, InstructionFamily.NUMERIC_CONST),
     F32CONST(0x43, InstructionFamily.NUMERIC_CONST),
     F64CONST(0x44, InstructionFamily.NUMERIC_CONST),
-    I32EQZ(0x45, InstructionFamily.NUMERIC_OP),
-    I32EQ(0x46),
-    I32NE(0x47),
-    I32LTS(0x48, InstructionFamily.NUMERIC_OP),
-    I32LTU(0x49, InstructionFamily.NUMERIC_OP),
-    I32GTS(0x4A, InstructionFamily.NUMERIC_OP),
-    I32GTU(0x4B, InstructionFamily.NUMERIC_OP),
-    I32LES(0x4C),
-    I32LEU(0x4D),
-    I32GES(0x4E),
-    I32GEU(0x4F),
-    I64EQZ(0x50),
-    I64EQ(0x51),
-    I64NE(0x52),
-    I64LTS(0x53),
-    I64LTU(0x54),
-    I64GTS(0x55),
-    I64GTU(0x56),
-    I64LES(0x57),
-    I64LEU(0x58),
-    I64GES(0x59),
-    I64GEU(0x5A),
+    I32EQZ(0x45, InstructionFamily.COMPARISON_OP),
+    I32EQ(0x46, InstructionFamily.COMPARISON_OP),
+    I32NE(0x47, InstructionFamily.COMPARISON_OP),
+    I32LTS(0x48, InstructionFamily.COMPARISON_OP),
+    I32LTU(0x49, InstructionFamily.COMPARISON_OP),
+    I32GTS(0x4A, InstructionFamily.COMPARISON_OP),
+    I32GTU(0x4B, InstructionFamily.COMPARISON_OP),
+    I32LES(0x4C, InstructionFamily.COMPARISON_OP),
+    I32LEU(0x4D, InstructionFamily.COMPARISON_OP),
+    I32GES(0x4E, InstructionFamily.COMPARISON_OP),
+    I32GEU(0x4F, InstructionFamily.COMPARISON_OP),
+    I64EQZ(0x50, InstructionFamily.COMPARISON_OP),
+    I64EQ(0x51, InstructionFamily.COMPARISON_OP),
+    I64NE(0x52, InstructionFamily.COMPARISON_OP),
+    I64LTS(0x53, InstructionFamily.COMPARISON_OP),
+    I64LTU(0x54, InstructionFamily.COMPARISON_OP),
+    I64GTS(0x55, InstructionFamily.COMPARISON_OP),
+    I64GTU(0x56, InstructionFamily.COMPARISON_OP),
+    I64LES(0x57, InstructionFamily.COMPARISON_OP),
+    I64LEU(0x58, InstructionFamily.COMPARISON_OP),
+    I64GES(0x59, InstructionFamily.COMPARISON_OP),
+    I64GEU(0x5A, InstructionFamily.COMPARISON_OP),
 
-    F32EQ(0x5B),
-    F32NE(0x5C),
-    F32LT(0x5D),
-    F32GT(0x5E),
-    F32LE(0x5F),
-    F32GE(0x60),
+    F32EQ(0x5B, InstructionFamily.COMPARISON_OP),
+    F32NE(0x5C, InstructionFamily.COMPARISON_OP),
+    F32LT(0x5D, InstructionFamily.COMPARISON_OP),
+    F32GT(0x5E, InstructionFamily.COMPARISON_OP),
+    F32LE(0x5F, InstructionFamily.COMPARISON_OP),
+    F32GE(0x60, InstructionFamily.COMPARISON_OP),
 
-    F64EQ(0x61),
-    F64NE(0x62),
-    F64LT(0x63),
-    F64GT(0x64),
-    F64LE(0x65),
-    F64GE(0x66),
+    F64EQ(0x61, InstructionFamily.COMPARISON_OP),
+    F64NE(0x62, InstructionFamily.COMPARISON_OP),
+    F64LT(0x63, InstructionFamily.COMPARISON_OP),
+    F64GT(0x64, InstructionFamily.COMPARISON_OP),
+    F64LE(0x65, InstructionFamily.COMPARISON_OP),
+    F64GE(0x66, InstructionFamily.COMPARISON_OP),
 
     I32CLZ(0x67),
     I32CTX(0x68),
@@ -146,7 +147,7 @@ enum class InstructionType(val opcode: Byte, val family: InstructionFamily = Ins
     F32FLOOR(0x8E.toByte()),
     F32TRUNC(0x8F.toByte()),
     F32NEAREST(0x90.toByte()),
-    F32SQRT(0x91.toByte()),
+    F32SQRT(0x91.toByte(), InstructionFamily.NUMERIC_OP),
     F32ADD(0x92.toByte(), InstructionFamily.NUMERIC_OP),
     F32SUB(0x93.toByte(), InstructionFamily.NUMERIC_OP),
     F32MUL(0x94.toByte(), InstructionFamily.NUMERIC_OP),
@@ -161,7 +162,7 @@ enum class InstructionType(val opcode: Byte, val family: InstructionFamily = Ins
     F64FLOOR(0x9C.toByte()),
     F64TRUNC(0x9D.toByte()),
     F64NEAREST(0x9E.toByte()),
-    F64SQRT(0x9F.toByte()),
+    F64SQRT(0x9F.toByte(), InstructionFamily.NUMERIC_OP),
     F64ADD(0xA0.toByte(), InstructionFamily.NUMERIC_OP),
     F64SUB(0xA1.toByte(), InstructionFamily.NUMERIC_OP),
     F64MUL(0xA2.toByte(), InstructionFamily.NUMERIC_OP),
@@ -226,6 +227,7 @@ data class I32ConstInstruction(override val type: InstructionType, val value: Lo
     }
 }
 
+data class F32ConstInstruction(val value: Float) : Instruction(InstructionType.F32CONST)
 data class F64ConstInstruction(val value: Double) : Instruction(InstructionType.F64CONST)
 
 class BlockInstruction(val blockType: BlockType, val content: List<Instruction>) : Instruction(InstructionType.BLOCK)
@@ -237,6 +239,10 @@ data class IfInstruction(val blockType: BlockType, val thenInstructions: List<In
 open class BinaryInstruction(type: InstructionType, val left: Instruction, val right: Instruction) : Instruction(type)
 
 open class TestInstruction(type: InstructionType, val value: Instruction) : Instruction(type)
+
+//
+// Basic arithmetic instructions
+//
 
 class I32AddInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32ADD, left, right)
 class I32SubInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32SUB, left, right)
@@ -254,6 +260,50 @@ class F64SubInstruction(left: Instruction, right: Instruction) : BinaryInstructi
 class F64MulInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F64MUL, left, right)
 class F64DivInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F64DIV, left, right)
 
+//
+// UnaryInstruction
+//
+
+open class UnaryInstruction(type: InstructionType, val operand: Instruction) : Instruction(type)
+
+class F32SqrtInstruction(operand: Instruction) : UnaryInstruction(InstructionType.F32SQRT, operand)
+class F64SqrtInstruction(operand: Instruction) : UnaryInstruction(InstructionType.F64SQRT, operand)
+
+//
+// Comparison instructions
+//
+
+/*class I32LesInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32LES, left, right)
+class I32LtsInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32LTS, left, right)
+class I32GesInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32GES, left, right)
+class I32GtsInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32GTS, left, right)
+class I32LeuInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32LEU, left, right)
+class I32LtuInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32LTU, left, right)
+class I32GeuInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32GEU, left, right)
+class I32GtuInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32GTU, left, right)
+
+class I64LesInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I64LES, left, right)
+class I64LtsInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I64LTS, left, right)
+class I64GesInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I64GES, left, right)
+class I64GtsInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I64GTS, left, right)
+class I64LeuInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I64LEU, left, right)
+class I64LtuInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I64LTU, left, right)
+class I64GeuInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I64GEU, left, right)
+class I64GtuInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I64GTU, left, right)
+
+class F32LeInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F32LE, left, right)
+class F32LtInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F32LT, left, right)
+class F32GeInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F32GE, left, right)
+class F32GtInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F32GT, left, right)
+
+class F64LeInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F64LE, left, right)
+class F64LtInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F64LT, left, right)
+class F64GeInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F64GE, left, right)
+class F64GtInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.F64GT, left, right)*/
+
+class I32EqzInstruction(value: Instruction) : TestInstruction(InstructionType.I32EQZ, value)
+
+
 class BinaryComparison(type: InstructionType, left: Instruction, right: Instruction) : BinaryInstruction(type, left, right)
 
 class I32AndInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32AND, left, right)
@@ -263,8 +313,6 @@ class F64PromoteF32Instruction(val value: Instruction) : Instruction(Instruction
 class F32ConvertUI64Instruction(val value: Instruction) : Instruction(InstructionType.F64PROMOTEF32)
 
 class I32OrInstruction(left: Instruction, right: Instruction) : BinaryInstruction(InstructionType.I32OR, left, right)
-
-class I32EqzInstruction(value: Instruction) : TestInstruction(InstructionType.I32EQZ, value)
 
 object returnInstruction : Instruction(InstructionType.RETURN) {
     override fun toString() = "returnInstruction"
