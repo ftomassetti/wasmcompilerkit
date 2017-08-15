@@ -3,15 +3,6 @@ package me.tomassetti.wasmkit.serialization
 import me.tomassetti.wasmkit.*
 import java.util.*
 
-sealed class BlockType
-object emptyBlockType : BlockType() {
-    override fun toString() = "emptyBlockType"
-}
-data class ValuedBlockType(val valueType: ValueType) : BlockType()
-
-val ELSE_BYTE = 0x05.toByte()
-val END_BYTE = 0x0B.toByte()
-
 private fun readBlockType(bytesReader: BytesReader) : BlockType {
     val byte = bytesReader.readNextByte()
     if (byte == 0x40.toByte()) {
@@ -21,9 +12,14 @@ private fun readBlockType(bytesReader: BytesReader) : BlockType {
     }
 }
 
-fun readExpression(bytesReader: BytesReader, delimiterExpected : Boolean = true): Instruction {
-    val instructionType = InstructionType.fromOpcode(bytesReader.readNextByte())
-    val instruction = when (instructionType.family) {
+private fun instantiateInstruction(bytesReader: BytesReader, instructionType: InstructionType) : Instruction {
+    if (instructionType in NON_PARAMETRIC_INSTRUCTIONS) {
+        return NON_PARAMETRIC_INSTRUCTIONS[instructionType]!!
+    }
+    if (instructionType in TYPE_PARAMETRIC_INSTRUCTIONS) {
+        return TYPE_PARAMETRIC_INSTRUCTIONS[instructionType]!!.constructors.first().call(instructionType)
+    }
+    return when (instructionType.family) {
         InstructionFamily.VAR -> VarInstruction(instructionType, bytesReader.readU32())
         InstructionFamily.NUMERIC_CONST -> {
             when (instructionType) {
@@ -74,120 +70,8 @@ fun readExpression(bytesReader: BytesReader, delimiterExpected : Boolean = true)
                 else -> throw UnsupportedOperationException("Instruction $instructionType")
             }
         }
-        InstructionFamily.COMPARISON_OP -> {
-            when (instructionType) {
-                InstructionType.I32GTS, InstructionType.I32GTU,
-                InstructionType.I32LTS, InstructionType.I32LTU,
-                InstructionType.I32GES, InstructionType.I32GEU,
-                InstructionType.I32LES, InstructionType.I32LEU,
-                InstructionType.I64GTS, InstructionType.I64GTU,
-                InstructionType.I64LTS, InstructionType.I64LTU,
-                InstructionType.I64GES, InstructionType.I64GEU,
-                InstructionType.I64LES, InstructionType.I64LEU,
-                InstructionType.F32GT, InstructionType.F32GE,
-                InstructionType.F32LT, InstructionType.F32LE,
-                InstructionType.F64GT, InstructionType.F64GE,
-                InstructionType.F64LT, InstructionType.F64LE,
-                InstructionType.I32NE, InstructionType.I64NE,
-                InstructionType.F32NE, InstructionType.F64NE,
-                InstructionType.I32EQ, InstructionType.I64EQ,
-                InstructionType.F32EQ, InstructionType.F64EQ-> {
-                    BinaryComparison(instructionType)
-                }
-                InstructionType.I32EQZ -> {
-                    I32EqzInstruction
-                }
-                else -> throw UnsupportedOperationException("Instruction $instructionType")
-            }
-        }
-        InstructionFamily.NUMERIC_OP -> {
-            when (instructionType) {
-
-                InstructionType.I32ADD -> I32AddInstruction
-                InstructionType.I32SUB -> I32SubInstruction
-                InstructionType.I32MUL -> I32MulInstruction
-                InstructionType.I32DIVS -> I32DivSInstruction
-                InstructionType.I32DIVU -> I32DivUInstruction
-                InstructionType.I32REMS -> I32RemSInstruction
-                InstructionType.I32REMU -> I32RemUInstruction
-                InstructionType.I32AND -> I32AndInstruction
-                InstructionType.I32OR -> I32OrInstruction
-                InstructionType.I32XOR -> I32XorInstruction
-
-                InstructionType.I64ADD -> I64AddInstruction
-                InstructionType.I64SUB -> I64SubInstruction
-                InstructionType.I64MUL -> I64MulInstruction
-                InstructionType.I64DIVS -> I64DivSInstruction
-                InstructionType.I64DIVU -> I64DivUInstruction
-                InstructionType.I64REMS -> I64RemSInstruction
-                InstructionType.I64REMU -> I64RemUInstruction
-                InstructionType.I64AND -> I64AndInstruction
-                InstructionType.I64OR -> I64OrInstruction
-                InstructionType.I64XOR -> I64XorInstruction
-
-                InstructionType.F32ADD -> F32AddInstruction
-                InstructionType.F32SUB -> F32SubInstruction
-                InstructionType.F32MUL -> F32MulInstruction
-                InstructionType.F32DIV -> F32DivInstruction
-
-                InstructionType.F64ADD -> F64AddInstruction
-                InstructionType.F64SUB -> F64SubInstruction
-                InstructionType.F64MUL -> F64MulInstruction
-                InstructionType.F64DIV -> F64DivInstruction
-
-                InstructionType.F32SQRT -> F32SqrtInstruction
-                InstructionType.F64SQRT -> F64SqrtInstruction
-
-                InstructionType.F32CEIL -> F32CeilInstruction
-                InstructionType.F64CEIL -> F64CeilInstruction
-                InstructionType.F32FLOOR -> F32FloorInstruction
-                InstructionType.F64FLOOR -> F64FloorInstruction
-                
-                InstructionType.I32SHL -> I32ShlInstruction
-                InstructionType.I32SHRU -> I32ShruInstruction
-                InstructionType.I32SHRS -> I32ShrsInstruction
-                InstructionType.I32ROTL -> I32RotlInstruction
-                InstructionType.I32ROTR -> I32RotrInstruction
-
-                InstructionType.I64SHL -> I64ShlInstruction
-                InstructionType.I64SHRU -> I64ShruInstruction
-                InstructionType.I64SHRS -> I64ShrsInstruction
-                InstructionType.I64ROTL -> I64RotlInstruction
-                InstructionType.I64ROTR -> I64RotrInstruction
-
-                InstructionType.F32NEG -> F32NegInstruction
-                InstructionType.F64NEG -> F64NegInstruction
-
-                else -> throw UnsupportedOperationException("Instruction $instructionType")
-            }
-        }
-        InstructionFamily.CONVERSION_OP -> {
-            when (instructionType) {
-
-                InstructionType.I32TRUNCSF32 -> I32TruncSF32Instruction
-                InstructionType.I32TRUNCSF64 -> I32TruncSF64Instruction
-                InstructionType.I32TRUNCUF32 -> I32TruncUF32Instruction
-                InstructionType.I32TRUNCUF64 -> I32TruncUF64Instruction
-
-                InstructionType.I32WRAPI64 -> I32WrapI64Instruction
-
-                InstructionType.F64PROMOTEF32 -> F64PromoteF32Instruction
-
-                InstructionType.F32CONVERTUI32 -> F32ConvertUI32Instruction
-                InstructionType.F32CONVERTUI64 -> F32ConvertUI64Instruction
-                InstructionType.F32CONVERTSI32 -> F32ConvertSI32Instruction
-                InstructionType.F32CONVERTSI64 -> F32ConvertSI64Instruction
-
-                InstructionType.F64CONVERTUI32 -> F64ConvertUI32Instruction
-                InstructionType.F64CONVERTUI64 -> F64ConvertUI64Instruction
-                InstructionType.F64CONVERTSI32 -> F64ConvertSI32Instruction
-                InstructionType.F64CONVERTSI64 -> F64ConvertSI64Instruction
-                else -> throw UnsupportedOperationException("Instruction $instructionType")
-            }
-        }
         InstructionFamily.CONTROL -> {
             when (instructionType) {
-                InstructionType.RETURN -> returnInstruction
                 InstructionType.JUMP -> {
                     JumpInstruction(bytesReader.readU32())
                 }
@@ -221,16 +105,14 @@ fun readExpression(bytesReader: BytesReader, delimiterExpected : Boolean = true)
                 else -> throw UnsupportedOperationException("Instruction $instructionType")
             }
         }
-        else -> {
-            when (instructionType) {
-                InstructionType.NOP -> nop
-                InstructionType.UNREACHABLE -> unreachable
-                InstructionType.DROP -> drop
-                InstructionType.SELECT -> select
-                else -> throw UnsupportedOperationException("Instruction $instructionType")
-            }
-        }
+        else -> throw UnsupportedOperationException("Instruction $instructionType")
     }
+}
+
+fun readExpression(bytesReader: BytesReader, delimiterExpected : Boolean = true): Instruction {
+    val instructionType = InstructionType.fromOpcode(bytesReader.readNextByte())
+
+    val instruction = instantiateInstruction(bytesReader, instructionType)
     if (delimiterExpected) {
         bytesReader.expectByte(END_BYTE)
     }

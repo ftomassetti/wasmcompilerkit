@@ -3,6 +3,9 @@ package me.tomassetti.wasmkit.serialization
 import java.nio.ByteBuffer
 import kotlin.experimental.and
 
+/**
+ * Read from a ByteArray
+ */
 class BytesReader(val bytes: ByteArray) {
     private var currentIndex = 0
 

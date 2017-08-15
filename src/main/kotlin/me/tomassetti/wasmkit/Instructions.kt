@@ -1,7 +1,12 @@
 package me.tomassetti.wasmkit
 
-import me.tomassetti.wasmkit.serialization.BlockType
 import me.tomassetti.wasmkit.serialization.sizeInBytesOfU32
+
+sealed class BlockType
+object emptyBlockType : BlockType() {
+    override fun toString() = "emptyBlockType"
+}
+data class ValuedBlockType(val valueType: ValueType) : BlockType()
 
 enum class InstructionFamily {
     UNSPECIFIED,
@@ -24,7 +29,7 @@ enum class InstructionType(val opcode: Byte, val family: InstructionFamily = Ins
     IF(0x04, InstructionFamily.BLOCKS),
     JUMP(0x0C, InstructionFamily.CONTROL),
     CONDJUMP(0x0D, InstructionFamily.CONTROL),
-    TABLEJUMP(0x0E),
+    TABLEJUMP(0x0E, InstructionFamily.CONTROL),
     RETURN(0x0F, InstructionFamily.CONTROL),
     CALL(0x10, InstructionFamily.CALL),
     INDCALL(0x11, InstructionFamily.CALL),
@@ -79,6 +84,7 @@ enum class InstructionType(val opcode: Byte, val family: InstructionFamily = Ins
     I32LEU(0x4D, InstructionFamily.COMPARISON_OP),
     I32GES(0x4E, InstructionFamily.COMPARISON_OP),
     I32GEU(0x4F, InstructionFamily.COMPARISON_OP),
+    
     I64EQZ(0x50, InstructionFamily.COMPARISON_OP),
     I64EQ(0x51, InstructionFamily.COMPARISON_OP),
     I64NE(0x52, InstructionFamily.COMPARISON_OP),
@@ -105,9 +111,9 @@ enum class InstructionType(val opcode: Byte, val family: InstructionFamily = Ins
     F64LE(0x65, InstructionFamily.COMPARISON_OP),
     F64GE(0x66, InstructionFamily.COMPARISON_OP),
 
-    I32CLZ(0x67),
-    I32CTX(0x68),
-    I32POPCNT(0x69),
+    I32CLZ(0x67, InstructionFamily.NUMERIC_OP),
+    I32CTX(0x68, InstructionFamily.NUMERIC_OP),
+    I32POPCNT(0x69, InstructionFamily.NUMERIC_OP),
     I32ADD(0x6A, InstructionFamily.NUMERIC_OP),
     I32SUB(0x6B, InstructionFamily.NUMERIC_OP),
     I32MUL(0x6C, InstructionFamily.NUMERIC_OP),
@@ -124,9 +130,9 @@ enum class InstructionType(val opcode: Byte, val family: InstructionFamily = Ins
     I32ROTL(0x77, InstructionFamily.NUMERIC_OP),
     I32ROTR(0x78, InstructionFamily.NUMERIC_OP),
 
-    I64CLZ(0x79),
-    I64CTX(0x7A),
-    I64POPCNT(0x7B),
+    I64CLZ(0x79, InstructionFamily.NUMERIC_OP),
+    I64CTX(0x7A, InstructionFamily.NUMERIC_OP),
+    I64POPCNT(0x7B, InstructionFamily.NUMERIC_OP),
     I64ADD(0x7C, InstructionFamily.NUMERIC_OP),
     I64SUB(0x7D, InstructionFamily.NUMERIC_OP),
     I64MUL(0x7E, InstructionFamily.NUMERIC_OP),
@@ -156,7 +162,7 @@ enum class InstructionType(val opcode: Byte, val family: InstructionFamily = Ins
     F32DIV(0x95.toByte(), InstructionFamily.NUMERIC_OP),
     F32MIN(0x96.toByte(), InstructionFamily.NUMERIC_OP),
     F32MAX(0x97.toByte(), InstructionFamily.NUMERIC_OP),
-    F32COPYSIGN(0x98.toByte()),
+    F32COPYSIGN(0x98.toByte(), InstructionFamily.NUMERIC_OP),
 
     F64ABS(0x99.toByte(), InstructionFamily.NUMERIC_OP),
     F64NEG(0x9A.toByte(), InstructionFamily.NUMERIC_OP),
@@ -171,7 +177,7 @@ enum class InstructionType(val opcode: Byte, val family: InstructionFamily = Ins
     F64DIV(0xA3.toByte(), InstructionFamily.NUMERIC_OP),
     F64MIN(0xA4.toByte(), InstructionFamily.NUMERIC_OP),
     F64MAX(0xA5.toByte(), InstructionFamily.NUMERIC_OP),
-    F64COPYSIGN(0xA6.toByte()),
+    F64COPYSIGN(0xA6.toByte(), InstructionFamily.NUMERIC_OP),
 
     I32WRAPI64(0xA7.toByte(), InstructionFamily.CONVERSION_OP),
     I32TRUNCSF32(0xA8.toByte(), InstructionFamily.CONVERSION_OP),
@@ -181,9 +187,9 @@ enum class InstructionType(val opcode: Byte, val family: InstructionFamily = Ins
     I64EXTENDSI32(0xAC.toByte(), InstructionFamily.CONVERSION_OP),
     I64EXTENDUI32(0xAD.toByte(), InstructionFamily.CONVERSION_OP),
     I64TRUNCSF32(0xAE.toByte(), InstructionFamily.CONVERSION_OP),
-    I64TRUNCSU32(0xAF.toByte(), InstructionFamily.CONVERSION_OP),
+    I64TRUNCUF32(0xAF.toByte(), InstructionFamily.CONVERSION_OP),
     I64TRUNCSF64(0xB0.toByte(), InstructionFamily.CONVERSION_OP),
-    I64TRUNCSU64(0xB1.toByte(), InstructionFamily.CONVERSION_OP),
+    I64TRUNCUF64(0xB1.toByte(), InstructionFamily.CONVERSION_OP),
 
     F32CONVERTSI32(0xB2.toByte(), InstructionFamily.CONVERSION_OP),
     F32CONVERTUI32(0xB3.toByte(), InstructionFamily.CONVERSION_OP),
@@ -242,6 +248,14 @@ open class TestInstruction(type: InstructionType) : Instruction(type)
 //
 // Basic arithmetic instructions
 //
+
+object I32ClzInstruction : Instruction(InstructionType.I32CLZ)
+object I32CtxInstruction : Instruction(InstructionType.I32CTX)
+object I32PopCntInstruction : Instruction(InstructionType.I32POPCNT)
+
+object I64ClzInstruction : Instruction(InstructionType.I64CLZ)
+object I64CtxInstruction : Instruction(InstructionType.I64CTX)
+object I64PopCntInstruction : Instruction(InstructionType.I64POPCNT)
 
 object I32AddInstruction : BinaryInstruction(InstructionType.I32ADD)
 object I32SubInstruction : BinaryInstruction(InstructionType.I32SUB)
@@ -327,12 +341,41 @@ object F64ConvertUI64Instruction : ConversionInstruction(InstructionType.F64CONV
 object F64ConvertSI32Instruction : ConversionInstruction(InstructionType.F64CONVERTSI32)
 object F64ConvertSI64Instruction : ConversionInstruction(InstructionType.F64CONVERTSI64)
 
+object F32DemoteF64Instruction : ConversionInstruction(InstructionType.F32DEMOTEF64)
+
+object I32ReinterpretF32Instruction : ConversionInstruction(InstructionType.I32REINTERPRETF32)
+object I64ReinterpretF64Instruction : ConversionInstruction(InstructionType.I64REINTERPRETF64)
+object F32ReinterpretI32Instruction : ConversionInstruction(InstructionType.F32REINTERPRETI32)
+object F64ReinterpretI64Instruction : ConversionInstruction(InstructionType.F64REINTERPRETI64)
+
 object I32TruncSF32Instruction : ConversionInstruction(InstructionType.I32TRUNCSF32)
 object I32TruncSF64Instruction : ConversionInstruction(InstructionType.I32TRUNCSF64)
 object I32TruncUF32Instruction : ConversionInstruction(InstructionType.I32TRUNCUF32)
 object I32TruncUF64Instruction : ConversionInstruction(InstructionType.I32TRUNCUF64)
 
 object I32WrapI64Instruction : ConversionInstruction(InstructionType.I32WRAPI64)
+
+object F32AbsInstruction : Instruction(InstructionType.F32ABS)
+object F32TruncInstruction : Instruction(InstructionType.F32TRUNC)
+object F32NearestIntstruction : Instruction(InstructionType.F32NEAREST)
+object F32MinInstruction : Instruction(InstructionType.F32MIN)
+object F32MaxInstruction : Instruction(InstructionType.F32MAX)
+object F32CopySignInstruction : Instruction(InstructionType.F32COPYSIGN)
+
+object F64AbsInstruction : Instruction(InstructionType.F64ABS)
+object F64TruncInstruction : Instruction(InstructionType.F64TRUNC)
+object F64NearestIntstruction : Instruction(InstructionType.F64NEAREST)
+object F64MinInstruction : Instruction(InstructionType.F64MIN)
+object F64MaxInstruction : Instruction(InstructionType.F64MAX)
+object F64CopySignInstruction : Instruction(InstructionType.F64COPYSIGN)
+
+object I64ExtendSI32Instruction : Instruction(InstructionType.I64EXTENDSI32)
+object I64ExtendUI32Instruction : Instruction(InstructionType.I64EXTENDUI32)
+
+object I64TruncSF32Instruction : Instruction(InstructionType.I64TRUNCSF32)
+object I64TruncUF32Instruction : Instruction(InstructionType.I64TRUNCUF32)
+object I64TruncSF64Instruction : Instruction(InstructionType.I64TRUNCSF64)
+object I64TruncUF64Instruction : Instruction(InstructionType.I64TRUNCUF64)
 
 object returnInstruction : Instruction(InstructionType.RETURN) {
     override fun toString() = "returnInstruction"
