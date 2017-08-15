@@ -313,24 +313,26 @@ object I64AndInstruction : BinaryInstruction(InstructionType.I64AND)
 object I64OrInstruction : BinaryInstruction(InstructionType.I64OR)
 object I64XorInstruction : BinaryInstruction(InstructionType.I64XOR)
 
-object F64PromoteF32Instruction : Instruction(InstructionType.F64PROMOTEF32)
+abstract class ConversionInstruction(instructionType: InstructionType) : Instruction(instructionType)
 
-object F32ConvertUI32Instruction : Instruction(InstructionType.F32CONVERTUI32)
-object F32ConvertUI64Instruction : Instruction(InstructionType.F32CONVERTUI64)
-object F32ConvertSI32Instruction : Instruction(InstructionType.F32CONVERTSI32)
-object F32ConvertSI64Instruction : Instruction(InstructionType.F32CONVERTSI64)
+object F64PromoteF32Instruction : ConversionInstruction(InstructionType.F64PROMOTEF32)
 
-object F64ConvertUI32Instruction : Instruction(InstructionType.F64CONVERTUI32)
-object F64ConvertUI64Instruction : Instruction(InstructionType.F64CONVERTUI64)
-object F64ConvertSI32Instruction : Instruction(InstructionType.F64CONVERTSI32)
-object F64ConvertSI64Instruction : Instruction(InstructionType.F64CONVERTSI64)
+object F32ConvertUI32Instruction : ConversionInstruction(InstructionType.F32CONVERTUI32)
+object F32ConvertUI64Instruction : ConversionInstruction(InstructionType.F32CONVERTUI64)
+object F32ConvertSI32Instruction : ConversionInstruction(InstructionType.F32CONVERTSI32)
+object F32ConvertSI64Instruction : ConversionInstruction(InstructionType.F32CONVERTSI64)
 
-object I32TruncSF32Instruction : Instruction(InstructionType.I32TRUNCSF32)
-object I32TruncSF64Instruction : Instruction(InstructionType.I32TRUNCSF64)
-object I32TruncUF32Instruction : Instruction(InstructionType.I32TRUNCUF32)
-object I32TruncUF64Instruction : Instruction(InstructionType.I32TRUNCUF64)
+object F64ConvertUI32Instruction : ConversionInstruction(InstructionType.F64CONVERTUI32)
+object F64ConvertUI64Instruction : ConversionInstruction(InstructionType.F64CONVERTUI64)
+object F64ConvertSI32Instruction : ConversionInstruction(InstructionType.F64CONVERTSI32)
+object F64ConvertSI64Instruction : ConversionInstruction(InstructionType.F64CONVERTSI64)
 
-object I32WrapI64Instruction : Instruction(InstructionType.I32WRAPI64)
+object I32TruncSF32Instruction : ConversionInstruction(InstructionType.I32TRUNCSF32)
+object I32TruncSF64Instruction : ConversionInstruction(InstructionType.I32TRUNCSF64)
+object I32TruncUF32Instruction : ConversionInstruction(InstructionType.I32TRUNCUF32)
+object I32TruncUF64Instruction : ConversionInstruction(InstructionType.I32TRUNCUF64)
+
+object I32WrapI64Instruction : ConversionInstruction(InstructionType.I32WRAPI64)
 
 object returnInstruction : Instruction(InstructionType.RETURN) {
     override fun toString() = "returnInstruction"

@@ -9,8 +9,8 @@ object emptyBlockType : BlockType() {
 }
 data class ValuedBlockType(val valueType: ValueType) : BlockType()
 
-private val ELSE_BYTE = 0x05.toByte()
-private val END_BYTE = 0x0B.toByte()
+val ELSE_BYTE = 0x05.toByte()
+val END_BYTE = 0x0B.toByte()
 
 private fun readBlockType(bytesReader: BytesReader) : BlockType {
     val byte = bytesReader.readNextByte()

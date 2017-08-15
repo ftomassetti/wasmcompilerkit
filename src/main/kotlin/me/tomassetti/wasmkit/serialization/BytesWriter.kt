@@ -1,6 +1,7 @@
 package me.tomassetti.wasmkit.serialization
 
 import java.io.ByteArrayOutputStream
+import java.nio.ByteBuffer
 
 interface BytesWriter {
     fun writeByte(byte: Byte)
@@ -50,6 +51,14 @@ class AdvancedBytesWriter(val basic: BytesWriter) {
         bytes.forEach { writeByte(it) }
     }
 
+    fun writeF32(value: Float) {
+        writeBytes(ByteBuffer.allocate(4).putFloat(value).array())
+    }
+
+    fun writeF64(value: Double) {
+        writeBytes(ByteBuffer.allocate(8).putDouble(value).array())
+    }
+
     fun writeU32(value: Long, remainingForcedSize : Int? = null) {
         // take last 7 bit
         val low7bits = value.and(0x7F)
@@ -71,6 +80,7 @@ class AdvancedBytesWriter(val basic: BytesWriter) {
         val encodedByte = low7bits + continuationBit
         writeByte(encodedByte.toByte())
         if (rest != 0-1L) {
+        //if (rest != 0L) {
             writeS32(rest)
         }
     }

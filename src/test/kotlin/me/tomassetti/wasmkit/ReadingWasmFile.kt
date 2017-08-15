@@ -1,9 +1,6 @@
 package me.tomassetti.wasmkit
 
-import me.tomassetti.wasmkit.serialization.BytesReader
-import me.tomassetti.wasmkit.serialization.emptyBlockType
-import me.tomassetti.wasmkit.serialization.interpret
-import me.tomassetti.wasmkit.serialization.readExpression
+import me.tomassetti.wasmkit.serialization.*
 import java.io.InputStream
 import org.junit.Test as test
 import org.junit.Assert.*
@@ -17,6 +14,13 @@ class ReadingWasmFile {
 
     private fun interpretInstruction(byteArray: ByteArray) : Instruction {
         return readExpression(BytesReader(byteArray), delimiterExpected = false)
+    }
+
+    private fun interpretAndSerializeCode(codeBlock: CodeBlock) {
+        val originalBytes = codeBlock.bytes
+        val instructions = codeBlock.interpret()
+        val serialized = serializeCodeBlock(instructions)
+        assertEquals(codeBlock, serialized)
     }
 
     @test
@@ -129,7 +133,7 @@ class ReadingWasmFile {
     fun readingWebDspCWasmFileCode() {
         // obtained from https://d2jta7o2zej4pf.cloudfront.net/
         val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/webdsp_c.wasm")
-        loadWorks(inputStream).codeSection()!!.elements.forEach { it.code.interpret() }
+        loadWorks(inputStream).codeSection()!!.elements.forEach { interpretAndSerializeCode(it.code) }
     }
 
     @test
@@ -143,7 +147,7 @@ class ReadingWasmFile {
     fun readingDynamicWasmFileCode() {
         // obtained from https://d2jta7o2zej4pf.cloudfront.net/
         val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/dynamics.wasm")
-        loadWorks(inputStream).codeSection()!!.elements.forEach { it.code.interpret() }
+        loadWorks(inputStream).codeSection()!!.elements.forEach { interpretAndSerializeCode(it.code) }
     }
 
     @test
@@ -157,7 +161,7 @@ class ReadingWasmFile {
     fun readingDynamicCollWasmFileCode() {
         // obtained from https://d2jta7o2zej4pf.cloudfront.net/
         val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/dynamics-coll.wasm")
-        loadWorks(inputStream).codeSection()!!.elements.forEach { it.code.interpret() }
+        loadWorks(inputStream).codeSection()!!.elements.forEach { interpretAndSerializeCode(it.code) }
     }
 
     @test
@@ -171,7 +175,7 @@ class ReadingWasmFile {
     fun readingDynamicOptWasmFileCode() {
         // obtained from https://d2jta7o2zej4pf.cloudfront.net/
         val inputStream = ReadingWasmFile::class.java.getResourceAsStream("/dynamics-opt.wasm")
-        loadWorks(inputStream).codeSection()!!.elements.forEach { it.code.interpret() }
+        loadWorks(inputStream).codeSection()!!.elements.forEach { interpretAndSerializeCode(it.code) }
     }
 
 }

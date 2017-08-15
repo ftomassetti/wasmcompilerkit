@@ -1,6 +1,7 @@
 package me.tomassetti.wasmkit.serialization
 
 import me.tomassetti.wasmkit.*
+import java.util.*
 
 fun storeSection(abw: AdvancedBytesWriter, section: WebAssemblySection) {
     abw.writeByte(section.type.id)
@@ -177,7 +178,51 @@ private fun Instruction.storeData(abw: AdvancedBytesWriter) {
     when (this) {
         is VarInstruction -> abw.writeU32(this.index)
         is I32ConstInstruction -> abw.writeU32(this.value)
+        is F32ConstInstruction -> abw.writeF32(this.value)
+        is F64ConstInstruction -> abw.writeF64(this.value)
+        is ConditionalJumpInstruction -> abw.writeU32(this.labelIndex)
+        is JumpInstruction -> abw.writeU32(this.labelIndex)
+        is CallInstruction -> abw.writeU32(this.funcIndex)
+        is IndirectCallInstruction -> abw.writeU32(this.typeIndex)
+        is BlockInstruction -> {
+            this.blockType.storeData(abw)
+            this.content.forEach { it.storeData(abw) }
+            abw.writeByte(END_BYTE)
+        }
+        is LoopInstruction -> {
+            this.blockType.storeData(abw)
+            this.content.forEach { it.storeData(abw) }
+            abw.writeByte(END_BYTE)
+        }
+        is IfInstruction -> {
+            this.blockType.storeData(abw)
+            this.thenInstructions.forEach { it.storeData(abw) }
+            if (this.elseInstructions != null) {
+                abw.writeByte(ELSE_BYTE)
+                this.elseInstructions.forEach { it.storeData(abw) }
+            }
+            abw.writeByte(END_BYTE)
+        }
+        is BinaryInstruction, is TestInstruction, is returnInstruction, is UnaryInstruction, is ConversionInstruction -> null
+        is GrowMem, is CurrMem -> {
+            abw.writeByte(0)
+        }
+        is MemoryInstruction -> {
+            this.memArg.storeData(abw)
+        }
         else -> TODO("Instruction of type $type")
+    }
+}
+
+private fun MemoryPosition.storeData(abw: AdvancedBytesWriter) {
+    abw.writeU32(align)
+    abw.writeU32(offset)
+}
+
+private fun BlockType.storeData(abw: AdvancedBytesWriter) {
+    when (this) {
+        is emptyBlockType -> abw.writeByte(0x40)
+        is ValuedBlockType -> this.valueType.storeData(abw)
     }
 }
 
@@ -208,4 +253,12 @@ fun storeModule(bytesWriter: BytesWriter, module: WebAssemblyModule) {
     abw.writeBytes(MAGIC_NUMBER)
     abw.writeBytes(WebAssemblyVersion.WASM1.byteArray)
     module.sections.forEach { storeSection(abw, it) }
+}
+
+fun serializeCodeBlock(instructions: List<Instruction>) : CodeBlock {
+    val bw = ToBytesArrayBytesWriter()
+    val abw = AdvancedBytesWriter(bw)
+    instructions.forEach { it.storeData(abw) }
+    abw.writeByte(END_BYTE)
+    return CodeBlock(bw.bytes())
 }

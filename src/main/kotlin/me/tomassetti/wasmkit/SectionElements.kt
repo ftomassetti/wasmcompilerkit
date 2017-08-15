@@ -136,7 +136,7 @@ data class ElementSegment(val tableIndex: TableIndex, val expr: Instruction, val
     }
 }
 
-class CodeBlock(val bytes: ByteArray) : Sized {
+data class CodeBlock(val bytes: ByteArray) : Sized {
     override fun sizeInBytes(): Long {
         return bytes.size.toLong()
     }
