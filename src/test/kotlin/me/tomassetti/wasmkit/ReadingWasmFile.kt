@@ -17,7 +17,6 @@ class ReadingWasmFile {
     }
 
     private fun interpretAndSerializeCode(codeBlock: CodeBlock) {
-        val originalBytes = codeBlock.bytes
         val instructions = codeBlock.interpret()
         val serialized = serializeCodeBlock(instructions)
         assertEquals(codeBlock, serialized)
@@ -75,6 +74,36 @@ class ReadingWasmFile {
     @test
     fun readingI32Const4() {
         interpretInstruction(byteArrayOf(65, 4))
+    }
+
+    @test
+    fun readingI32Const15() {
+        assertEquals(I32ConstInstruction(15), interpretInstruction(byteArrayOf(65, 15)))
+    }
+
+    @test
+    fun readingI32Const10000() {
+        assertEquals(I32ConstInstruction(10000), interpretInstruction(byteArrayOf(65, -112, -50, 0)))
+    }
+
+    @test
+    fun writingI32Const15() {
+        assertArrayEquals(byteArrayOf(65, 15), I32ConstInstruction(15).toBytes())
+    }
+
+    @test
+    fun writingI32Const10000() {
+        assertArrayEquals(byteArrayOf(65, -112, -50, 0), I32ConstInstruction(10000).toBytes())
+    }
+
+    @test
+    fun readingI32ConstMinus16() {
+        assertEquals(I32ConstInstruction(-16), interpretInstruction(byteArrayOf(65, 112)))
+    }
+
+    @test
+    fun writingI32ConstMinus16() {
+        assertArrayEquals(byteArrayOf(65, 112), I32ConstInstruction(-16).toBytes())
     }
 
     @test

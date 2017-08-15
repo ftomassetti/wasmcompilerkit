@@ -173,11 +173,18 @@ private fun WebAssemblyGlobalSection.storeData(abw: AdvancedBytesWriter) {
     })
 }
 
+fun Instruction.toBytes() : ByteArray {
+    val tbabw = ToBytesArrayBytesWriter()
+    this.storeData(me.tomassetti.wasmkit.serialization.AdvancedBytesWriter(tbabw))
+    return tbabw.bytes()
+}
+
 private fun Instruction.storeData(abw: AdvancedBytesWriter) {
     abw.writeByte(this.type.opcode)
     when (this) {
         is VarInstruction -> abw.writeU32(this.index)
         is I32ConstInstruction -> abw.writeS32(this.value)
+        is I64ConstInstruction -> abw.writeS32(this.value)
         is F32ConstInstruction -> abw.writeF32(this.value)
         is F64ConstInstruction -> abw.writeF64(this.value)
         is ConditionalJumpInstruction -> abw.writeU32(this.labelIndex)
@@ -203,7 +210,8 @@ private fun Instruction.storeData(abw: AdvancedBytesWriter) {
             }
             abw.writeByte(END_BYTE)
         }
-        is BinaryInstruction, is TestInstruction, is returnInstruction, is UnaryInstruction, is ConversionInstruction -> null
+        is BinaryInstruction, is TestInstruction, is returnInstruction, is UnaryInstruction, is ConversionInstruction,
+        is select, is drop, is nop, is unreachable -> null
         is GrowMem, is CurrMem -> {
             abw.writeByte(0)
         }

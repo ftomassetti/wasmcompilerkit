@@ -18,6 +18,16 @@ class BytesWriterTest {
     }
 
     @test
+    fun encode10000Signed() {
+        val toBA = ToBytesArrayBytesWriter()
+        val abw = AdvancedBytesWriter(toBA)
+        val expectedBytes = byteArrayOf(0x90.toByte(), 0xCE.toByte(), 0x00.toByte())
+        abw.writeS32(10000)
+        val actualBytes = toBA.bytes()
+        assertEquals(expectedBytes.toList(), actualBytes.toList())
+    }
+
+    @test
     fun encodeMinus624485() {
         val toBA = ToBytesArrayBytesWriter()
         val abw = AdvancedBytesWriter(toBA)

@@ -73,14 +73,17 @@ class AdvancedBytesWriter(val basic: BytesWriter) {
     }
 
     fun writeS32(value: Long) {
-        // take last 7 bit
         val low7bits = value.and(0x7F)
         val rest = value.shr(7)
-        val continuationBit = if (rest == -1L) 0 else 128
-        val encodedByte = low7bits + continuationBit
-        writeByte(encodedByte.toByte())
-        if (rest != 0-1L) {
-        //if (rest != 0L) {
+        val stop = (rest == 0L && low7bits.and(0x40)==0L) || (rest == -1L && low7bits.and(0x40)!=0L)
+        val more = !stop
+        val encodedByte = if (more) {
+            low7bits.or(0x80)
+        } else {
+            low7bits
+        }.toByte()
+        writeByte(encodedByte)
+        if (more) {
             writeS32(rest)
         }
     }

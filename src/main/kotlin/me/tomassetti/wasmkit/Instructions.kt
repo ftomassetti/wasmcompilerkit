@@ -229,9 +229,9 @@ data class I64ConstInstruction(val value: Long) : Instruction(InstructionType.I6
 data class F32ConstInstruction(val value: Float) : Instruction(InstructionType.F32CONST)
 data class F64ConstInstruction(val value: Double) : Instruction(InstructionType.F64CONST)
 
-class BlockInstruction(val blockType: BlockType, val content: List<Instruction>) : Instruction(InstructionType.BLOCK)
+data class BlockInstruction(val blockType: BlockType, val content: List<Instruction>) : Instruction(InstructionType.BLOCK)
 
-class LoopInstruction(val blockType: BlockType, val content: List<Instruction>) : Instruction(InstructionType.LOOP)
+data class LoopInstruction(val blockType: BlockType, val content: List<Instruction>) : Instruction(InstructionType.LOOP)
 
 data class IfInstruction(val blockType: BlockType, val thenInstructions: List<Instruction>, val elseInstructions: List<Instruction>? = null) : Instruction(InstructionType.IF)
 
