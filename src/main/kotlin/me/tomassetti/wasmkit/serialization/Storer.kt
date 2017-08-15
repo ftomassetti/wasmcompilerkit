@@ -177,7 +177,7 @@ private fun Instruction.storeData(abw: AdvancedBytesWriter) {
     abw.writeByte(this.type.opcode)
     when (this) {
         is VarInstruction -> abw.writeU32(this.index)
-        is I32ConstInstruction -> abw.writeU32(this.value)
+        is I32ConstInstruction -> abw.writeS32(this.value)
         is F32ConstInstruction -> abw.writeF32(this.value)
         is F64ConstInstruction -> abw.writeF64(this.value)
         is ConditionalJumpInstruction -> abw.writeU32(this.labelIndex)

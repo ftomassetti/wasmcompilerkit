@@ -345,7 +345,7 @@ class MemoryInstruction(type: InstructionType, val memArg: MemoryPosition) : Ins
 object GrowMem : Instruction(InstructionType.GROWMEM)
 object CurrMem : Instruction(InstructionType.CURRMEM)
 
-class JumpInstruction(val labelIndex: Long) : Instruction(InstructionType.CONDJUMP)
+class JumpInstruction(val labelIndex: Long) : Instruction(InstructionType.JUMP)
 class ConditionalJumpInstruction(val labelIndex: Long) : Instruction(InstructionType.CONDJUMP)
 
 class CallInstruction(val funcIndex: FuncIndex) : Instruction(InstructionType.CALL)

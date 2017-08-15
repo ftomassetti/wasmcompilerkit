@@ -27,7 +27,7 @@ fun readExpression(bytesReader: BytesReader, delimiterExpected : Boolean = true)
         InstructionFamily.VAR -> VarInstruction(instructionType, bytesReader.readU32())
         InstructionFamily.NUMERIC_CONST -> {
             when (instructionType) {
-                InstructionType.I32CONST -> I32ConstInstruction(bytesReader.readU32())
+                InstructionType.I32CONST -> I32ConstInstruction(bytesReader.readS32())
                 InstructionType.I64CONST -> I32ConstInstruction(bytesReader.readU32())
                 InstructionType.F32CONST -> F32ConstInstruction(bytesReader.readFloat())
                 InstructionType.F64CONST -> F64ConstInstruction(bytesReader.readDouble())
