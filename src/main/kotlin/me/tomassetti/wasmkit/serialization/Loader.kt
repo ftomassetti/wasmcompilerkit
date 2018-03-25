@@ -309,26 +309,22 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
 
     private fun readImportData() : ImportData {
         val importType = ImportType.fromId(readNextByte())
-        val importData : ImportData = when (importType) {
+        return when (importType) {
             ImportType.GLOBAL -> readGlobalImportData()
             ImportType.FUNC -> readFunctionImportData()
             ImportType.MEM -> readMemoryImportData()
             ImportType.TABLE -> readTableImportData()
-            else -> throw UnsupportedOperationException("I do not know how to read $importType")
         }
-        return importData
     }
 
     private fun readExportData() : ExportData {
         val importType = ImportType.fromId(readNextByte())
-        val data : ExportData = when (importType) {
+        return when (importType) {
             ImportType.GLOBAL -> GlobalExportData(bytesReader.readU32())
             ImportType.FUNC -> FunctionExportData(bytesReader.readU32())
             ImportType.MEM -> MemoryExportData(bytesReader.readU32())
             ImportType.TABLE -> TableExportData(bytesReader.readU32())
-            else -> throw UnsupportedOperationException("I do not know how to read $importType")
         }
-        return data
     }
 
     private fun readExportEntry(): ExportEntry {
@@ -380,18 +376,18 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
 
     private fun readBoolean(): Boolean {
         val b = readNextByte()
-        when (b) {
-            0x00.toByte() -> return false
-            0x01.toByte() -> return true
+        return when (b) {
+            0x00.toByte() -> false
+            0x01.toByte() -> true
             else -> throw RuntimeException()
         }
     }
 
     private fun readLimits(): Limits {
         val b = readNextByte()
-        when (b) {
-            0x00.toByte() -> return Limits(bytesReader.readU32())
-            0x01.toByte() -> return Limits(bytesReader.readU32(), bytesReader.readU32())
+        return when (b) {
+            0x00.toByte() -> Limits(bytesReader.readU32())
+            0x01.toByte() -> Limits(bytesReader.readU32(), bytesReader.readU32())
             else -> throw RuntimeException()
         }
     }
