@@ -169,10 +169,17 @@ class WebAssemblyLoader(bytes: ByteArray, val module: WebAssemblyModule) {
             SectionType.DATA -> readDataSection()
             SectionType.TABLE -> readTableSection()
             SectionType.MEMORY -> readMemorySection()
-            SectionType.CUSTOM -> TODO()
+            SectionType.CUSTOM -> readCustomSection()
             SectionType.START -> TODO()
         }
         module.addSection(section)
+    }
+
+    private fun readCustomSection() : WebAssemblyCustomSection {
+        val payloadLen = bytesReader.readU32()
+        val bytes = bytesReader.readBytes(payloadLen)
+        val section = WebAssemblyCustomSection("Unnamed", bytes)
+        return section
     }
 
     private fun readMemorySection() : WebAssemblySection {
